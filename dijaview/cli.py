@@ -134,6 +134,16 @@ def main(args: List[str] = None) -> int:
 
     perm_sub.add_parser("reset", help="Reset permissions back to secure defaults")
 
+    # Command: serve
+    serve_parser = subparsers.add_parser("serve", help="Start the local web dashboard")
+    serve_parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
+    serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+
+    # Command: watch
+    watch_parser = subparsers.add_parser("watch", help="Continuously monitor and automatically index activity")
+    watch_parser.add_argument("--interval", type=int, default=30, help="Scan interval in seconds (default: 30)")
+    watch_parser.add_argument("--once", action="store_true", help="Run a single incremental sync sweep and exit")
+
     parsed = parser.parse_args(args)
 
     if parsed.command in {None, "chat"}:
@@ -302,6 +312,21 @@ def main(args: List[str] = None) -> int:
             permissions.reset_defaults()
             print("Permissions successfully reset to secure defaults.")
             return 0
+
+    if parsed.command == "serve":
+        from dijaview.web.server import start_web_server
+        start_web_server(host=parsed.host, port=parsed.port, config=config)
+        return 0
+
+    if parsed.command == "watch":
+        from dijaview.watcher.daemon import SyncWatcher
+        watcher = SyncWatcher(db=db, config=config, permissions=permissions, interval_seconds=parsed.interval)
+        if parsed.once:
+            count = watcher.run_once()
+            print(f"Sync sweep complete: +{count} new activity entries indexed.")
+            return 0
+        watcher.run_loop()
+        return 0
 
     return 0
 

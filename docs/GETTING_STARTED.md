@@ -335,3 +335,40 @@ To return to the default secure profile:
 ```bash
 dijaview permissions reset
 ```
+
+---
+
+## 7. Running the local web dashboard
+
+Dijaview includes a local, self-contained web user interface for visual search and timeline browsing:
+
+```bash
+# Launch the local dashboard on http://localhost:8080
+dijaview serve
+
+# Specify a custom port
+dijaview serve --port 3000
+```
+
+Open `http://localhost:8080` in your web browser to:
+* Search activity logs with instant answers and citations.
+* Filter results by source (All, Terminal, Browser, Notes).
+* Browse your chronological computer activity timeline.
+* Inspect and toggle source permissions on the fly.
+
+---
+
+## 8. Automatic background activity sync
+
+Keep your local search index synchronized with your ongoing work automatically:
+
+```bash
+# Start background watcher daemon (checks every 30 seconds)
+dijaview watch
+
+# Run with a custom sync interval
+dijaview watch --interval 60
+
+# Run a single incremental sync sweep and exit
+dijaview watch --once
+```
