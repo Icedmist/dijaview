@@ -45,6 +45,8 @@
 ### [Issue #7] Initial Core Engine, Adapters, Gemma 2 Client & Chat REPL
 - **Date**: 2026-10-02
 - **Issue**: [Icedmist/dijaview#7](https://github.com/Icedmist/dijaview/issues/7)
+- **PR**: [Icedmist/dijaview#8](https://github.com/Icedmist/dijaview/pull/8)
+- **Commit**: `b08f64e` (Squash merge into `main`)
 - **Scope**:
   - Implemented core models and automated secret/credential redaction engine (`redactor.py`).
   - Implemented natural language temporal query parser (`temporal.py`).
