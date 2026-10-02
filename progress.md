@@ -33,6 +33,8 @@
 ### [Issue #5] Multi-Platform Setup Guides & Interactive Chat Command
 - **Date**: 2026-10-02
 - **Issue**: [Icedmist/dijaview#5](https://github.com/Icedmist/dijaview/issues/5)
+- **PR**: [Icedmist/dijaview#6](https://github.com/Icedmist/dijaview/pull/6)
+- **Commit**: `b0d1c53` (Squash merge into `main`)
 - **Scope**:
   - Added single-command interactive terminal chat REPL (`dijaview` or `dijaview chat`) with sample dialogue.
   - Added dedicated Linux setup guide covering Ubuntu/Debian, Fedora/RHEL, and Arch Linux.
