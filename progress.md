@@ -21,6 +21,8 @@
 ### [Issue #3] Documentation Simplification, CLI Command Reference & Contributing Guide
 - **Date**: 2026-10-02
 - **Issue**: [Icedmist/dijaview#3](https://github.com/Icedmist/dijaview/issues/3)
+- **PR**: [Icedmist/dijaview#4](https://github.com/Icedmist/dijaview/pull/4)
+- **Commit**: `3bddf70` (Squash merge into `main`)
 - **Scope**:
   - Converted repository to public visibility.
   - Standardized names and headings to clean sentence case.
