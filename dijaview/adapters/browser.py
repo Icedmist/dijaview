@@ -5,7 +5,7 @@ import sqlite3
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, List, Optional
 
 from dijaview.adapters.base import BaseSourceAdapter
 from dijaview.core.models import ActivityRecord, SourceType
@@ -15,7 +15,8 @@ from dijaview.core.redactor import redact_secrets
 class BrowserAdapter(BaseSourceAdapter):
     """Safely reads local browser history from Chrome, Brave, and Firefox."""
 
-    def __init__(self, custom_paths: List[str] = None):
+    def __init__(self, custom_paths: Optional[List[str]] = None, permissions: Optional[Any] = None):
+        self.permissions = permissions
         self.custom_paths = custom_paths
 
     def source_type(self) -> str:
@@ -53,21 +54,25 @@ class BrowserAdapter(BaseSourceAdapter):
         return [p for p in candidates if p.exists() and p.is_file()]
 
     def scan_records(self, since_epoch: float = 0.0) -> List[ActivityRecord]:
+        if self.permissions and not self.permissions.is_source_enabled("browser"):
+            return []
+
         records: List[ActivityRecord] = []
         dbs = self._find_history_databases()
+        custom_rules = self.permissions.get_custom_rules_tuples() if self.permissions else None
 
         for db_path in dbs:
             try:
                 if "places.sqlite" in db_path.name:
-                    records.extend(self._read_firefox(db_path, since_epoch))
+                    records.extend(self._read_firefox(db_path, since_epoch, custom_rules=custom_rules))
                 else:
-                    records.extend(self._read_chromium(db_path, since_epoch))
+                    records.extend(self._read_chromium(db_path, since_epoch, custom_rules=custom_rules))
             except Exception:
                 continue
 
         return records
 
-    def _read_chromium(self, db_path: Path, since_epoch: float) -> List[ActivityRecord]:
+    def _read_chromium(self, db_path: Path, since_epoch: float, custom_rules: Optional[List[tuple]] = None) -> List[ActivityRecord]:
         records: List[ActivityRecord] = []
 
         # Create a temp snapshot to bypass locks if browser is currently active
@@ -101,8 +106,8 @@ class BrowserAdapter(BaseSourceAdapter):
                 if not url or url.startswith("chrome://") or url.startswith("about:"):
                     continue
 
-                clean_title = redact_secrets(title or url)
-                clean_url = redact_secrets(url)
+                clean_title = redact_secrets(title or url, custom_rules=custom_rules)
+                clean_url = redact_secrets(url, custom_rules=custom_rules)
                 rec_id = hashlib.sha256(f"{url}_{unix_time}".encode()).hexdigest()[:16]
                 iso_time = datetime.fromtimestamp(unix_time).isoformat()
 
@@ -125,7 +130,7 @@ class BrowserAdapter(BaseSourceAdapter):
 
         return records
 
-    def _read_firefox(self, db_path: Path, since_epoch: float) -> List[ActivityRecord]:
+    def _read_firefox(self, db_path: Path, since_epoch: float, custom_rules: Optional[List[tuple]] = None) -> List[ActivityRecord]:
         records: List[ActivityRecord] = []
 
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
@@ -156,8 +161,8 @@ class BrowserAdapter(BaseSourceAdapter):
                 if not url or url.startswith("about:"):
                     continue
 
-                clean_title = redact_secrets(title or url)
-                clean_url = redact_secrets(url)
+                clean_title = redact_secrets(title or url, custom_rules=custom_rules)
+                clean_url = redact_secrets(url, custom_rules=custom_rules)
                 rec_id = hashlib.sha256(f"{url}_{unix_time}".encode()).hexdigest()[:16]
                 iso_time = datetime.fromtimestamp(unix_time).isoformat()
 

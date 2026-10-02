@@ -1,9 +1,9 @@
+import hashlib
 import os
 import re
-import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, List, Optional
 
 from dijaview.adapters.base import BaseSourceAdapter
 from dijaview.core.models import ActivityRecord, SourceType
@@ -13,7 +13,8 @@ from dijaview.core.redactor import redact_secrets
 class TerminalAdapter(BaseSourceAdapter):
     """Ingests shell history from Bash, Zsh, Fish, and PowerShell."""
 
-    def __init__(self, history_paths: List[str] = None):
+    def __init__(self, history_paths: Optional[List[str]] = None, permissions: Optional[Any] = None):
+        self.permissions = permissions
         self.history_paths = history_paths or self._default_paths()
 
     def _default_paths(self) -> List[Path]:
@@ -30,12 +31,17 @@ class TerminalAdapter(BaseSourceAdapter):
         return SourceType.TERMINAL.value
 
     def scan_records(self, since_epoch: float = 0.0) -> List[ActivityRecord]:
+        if self.permissions and not self.permissions.is_source_enabled("terminal"):
+            return []
+
         records: List[ActivityRecord] = []
+        custom_rules = self.permissions.get_custom_rules_tuples() if self.permissions else None
+
         for path in self.history_paths:
-            records.extend(self._parse_file(Path(path), since_epoch))
+            records.extend(self._parse_file(Path(path), since_epoch, custom_rules=custom_rules))
         return records
 
-    def _parse_file(self, path: Path, since_epoch: float) -> List[ActivityRecord]:
+    def _parse_file(self, path: Path, since_epoch: float, custom_rules: Optional[List[tuple]] = None) -> List[ActivityRecord]:
         records: List[ActivityRecord] = []
         if not path.exists():
             return records
@@ -74,7 +80,7 @@ class TerminalAdapter(BaseSourceAdapter):
             if command in {"ls", "cd", "pwd", "clear", "exit", "history", "q"}:
                 continue
 
-            sanitized_command = redact_secrets(command)
+            sanitized_command = redact_secrets(command, custom_rules=custom_rules)
             rec_id = hashlib.sha256(f"{path}_{idx}_{current_timestamp}_{command}".encode()).hexdigest()[:16]
             iso_time = datetime.fromtimestamp(current_timestamp).isoformat()
 

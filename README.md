@@ -170,12 +170,35 @@ Inspects and modifies your local settings.
 ```bash
 # Show current configuration settings
 dijaview config show
+```
 
-# Set the active model
-dijaview config set model.name gemma2:2b
+### 8. Customizing privacy and permissions (`dijaview permissions`)
+You have total control over what Dijaview can and cannot see. You can grant, revoke, modify, or add permissions for data sources, directories, file sizes, and custom secret redaction filters.
 
-# Add a new folder to watch for notes
-dijaview config add adapters.notes.directories "~/my-notes"
+```bash
+# Show active permissions matrix
+dijaview permissions show
+
+# Enable or disable specific data sources
+dijaview permissions disable browser
+dijaview permissions enable browser
+dijaview permissions disable terminal
+dijaview permissions enable notes
+
+# Manage directory access permissions
+dijaview permissions allow-path ~/WorkNotes
+dijaview permissions block-path ~/Documents/Confidential
+dijaview permissions remove-path ~/Documents/Confidential
+
+# Add custom secret redaction regular expressions
+dijaview permissions add-filter ssn "\d{3}-\d{2}-\d{4}" --replacement "[REDACTED_SSN]"
+dijaview permissions add-filter cust_id "CUST-[0-9]{6}" --replacement "[REDACTED_CUSTOMER]"
+
+# Remove a custom redaction filter
+dijaview permissions remove-filter ssn
+
+# Reset all permissions back to secure defaults
+dijaview permissions reset
 ```
 
 ---

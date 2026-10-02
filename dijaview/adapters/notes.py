@@ -2,7 +2,7 @@ import hashlib
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, List, Optional
 
 from dijaview.adapters.base import BaseSourceAdapter
 from dijaview.core.models import ActivityRecord, SourceType
@@ -21,13 +21,20 @@ EXCLUDED_DIRS = {
 }
 
 SUPPORTED_EXTENSIONS = {".md", ".markdown", ".txt", ".rst"}
+DEFAULT_MAX_FILE_SIZE = 1048576  # 1 MB
 
 
 class NotesAdapter(BaseSourceAdapter):
     """Scans and indexes user markdown notes and text documents."""
 
-    def __init__(self, directories: List[str] = None):
-        self.directories = [Path(d).expanduser() for d in (directories or self._default_directories())]
+    def __init__(self, directories: Optional[List[str]] = None, permissions: Optional[Any] = None):
+        self.permissions = permissions
+        if directories:
+            self.directories = [Path(d).expanduser() for d in directories]
+        elif self.permissions and self.permissions.get_allowed_paths():
+            self.directories = [Path(d).expanduser() for d in self.permissions.get_allowed_paths()]
+        else:
+            self.directories = [Path(d).expanduser() for d in self._default_directories()]
 
     def _default_directories(self) -> List[str]:
         home = Path.home()
@@ -42,14 +49,27 @@ class NotesAdapter(BaseSourceAdapter):
         return SourceType.NOTES.value
 
     def scan_records(self, since_epoch: float = 0.0) -> List[ActivityRecord]:
+        if self.permissions and not self.permissions.is_source_enabled("notes"):
+            return []
+
         records: List[ActivityRecord] = []
+        max_size = self.permissions.get_max_file_size() if self.permissions else DEFAULT_MAX_FILE_SIZE
+        custom_rules = self.permissions.get_custom_rules_tuples() if self.permissions else None
 
         for base_dir in self.directories:
             if not base_dir.exists():
                 continue
 
+            if self.permissions and not self.permissions.is_path_allowed(base_dir):
+                continue
+
             for root, dirs, files in os.walk(base_dir):
-                dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
+                # Filter out excluded or unpermitted directories
+                dirs[:] = [
+                    d for d in dirs
+                    if d not in EXCLUDED_DIRS
+                    and (not self.permissions or self.permissions.is_path_allowed(Path(root) / d))
+                ]
 
                 for file in files:
                     ext = Path(file).suffix.lower()
@@ -57,18 +77,28 @@ class NotesAdapter(BaseSourceAdapter):
                         continue
 
                     file_path = Path(root) / file
+
+                    # Verify permissions
+                    if self.permissions and not self.permissions.is_path_allowed(file_path):
+                        continue
+
                     try:
-                        mtime = file_path.stat().st_mtime
+                        stat = file_path.stat()
+                        # Skip oversized files to preserve memory and speed
+                        if stat.st_size > max_size:
+                            continue
+
+                        mtime = stat.st_mtime
                         if mtime < since_epoch:
                             continue
 
-                        records.extend(self._process_file(file_path, mtime))
+                        records.extend(self._process_file(file_path, mtime, custom_rules=custom_rules))
                     except Exception:
                         continue
 
         return records
 
-    def _process_file(self, path: Path, mtime: float) -> List[ActivityRecord]:
+    def _process_file(self, path: Path, mtime: float, custom_rules: Optional[List[tuple]] = None) -> List[ActivityRecord]:
         records: List[ActivityRecord] = []
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as f:
@@ -87,7 +117,7 @@ class NotesAdapter(BaseSourceAdapter):
             if not chunk.strip():
                 continue
 
-            clean_chunk = redact_secrets(chunk.strip())
+            clean_chunk = redact_secrets(chunk.strip(), custom_rules=custom_rules)
             first_line = clean_chunk.split("\n")[0].strip("# ").strip()
             title = first_line[:60] if first_line else path.name
 
@@ -114,7 +144,6 @@ class NotesAdapter(BaseSourceAdapter):
         return records
 
     def _chunk_content(self, text: str, max_chars: int = 1500) -> List[str]:
-        # Split on markdown headers
         sections = []
         current_section = []
         current_len = 0

@@ -279,3 +279,59 @@ privacy:
   redact_secrets: true
   ignore_dotfiles: true
 ```
+
+---
+
+## 6. Permissions and privacy management
+
+Dijaview gives you granular control over every aspect of what it accesses. You can customize, edit, modify, or add permissions at any time:
+
+### Inspect current permissions
+```bash
+dijaview permissions show
+```
+
+### Toggle data source access
+Grant or revoke access to any data source:
+```bash
+# Disable browser history scanning
+dijaview permissions disable browser
+
+# Re-enable browser history scanning
+dijaview permissions enable browser
+
+# Disable shell command indexing
+dijaview permissions disable terminal
+```
+
+### Allow or block directories
+Tell Dijaview which directories are safe to index and which to strictly ignore:
+```bash
+# Add a trusted folder to notes scanning
+dijaview permissions allow-path ~/WorkNotes
+
+# Block a sensitive directory
+dijaview permissions block-path ~/Documents/TaxReturns
+
+# Remove a path from the permissions list
+dijaview permissions remove-path ~/Documents/TaxReturns
+```
+
+### Add custom secret redaction filters
+In addition to built-in detection for API keys and passwords, you can add custom regular expressions to mask personal identifiers or company secrets:
+```bash
+# Mask social security or tax identification numbers
+dijaview permissions add-filter ssn "\d{3}-\d{2}-\d{4}" --replacement "[REDACTED_SSN]"
+
+# Mask customer identification codes
+dijaview permissions add-filter cust_code "CUST-[0-9]{6}" --replacement "[REDACTED_CUSTOMER]"
+
+# Remove a custom redaction filter
+dijaview permissions remove-filter ssn
+```
+
+### Reset permissions
+To return to the default secure profile:
+```bash
+dijaview permissions reset
+```
