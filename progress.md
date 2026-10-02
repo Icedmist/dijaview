@@ -90,4 +90,8 @@
   - Added unit test suites `tests/test_web_server.py` and `tests/test_watcher.py` (30/30 total tests passing).
   - Updated `README.md` and `docs/GETTING_STARTED.md` with web dashboard and background sync documentation.
 
+### Repository Visibility Update
+- **Date**: 2026-10-03
+- **Action**: Converted repository `Icedmist/dijaview` to **Public** visibility on GitHub per user request.
+
 
