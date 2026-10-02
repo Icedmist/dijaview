@@ -1,0 +1,3 @@
+# Dijaview dependencies
+# Standard library is used for zero-dependency core
+pytest>=7.0.0

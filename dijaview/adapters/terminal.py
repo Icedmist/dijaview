@@ -1,0 +1,95 @@
+import os
+import re
+import hashlib
+from datetime import datetime
+from pathlib import Path
+from typing import List
+
+from dijaview.adapters.base import BaseSourceAdapter
+from dijaview.core.models import ActivityRecord, SourceType
+from dijaview.core.redactor import redact_secrets
+
+
+class TerminalAdapter(BaseSourceAdapter):
+    """Ingests shell history from Bash, Zsh, Fish, and PowerShell."""
+
+    def __init__(self, history_paths: List[str] = None):
+        self.history_paths = history_paths or self._default_paths()
+
+    def _default_paths(self) -> List[Path]:
+        home = Path.home()
+        candidates = [
+            home / ".bash_history",
+            home / ".zsh_history",
+            home / ".local" / "share" / "fish" / "fish_history",
+            home / "AppData" / "Roaming" / "Microsoft" / "Windows" / "PowerShell" / "PSReadLine" / "ConsoleHost_history.txt",
+        ]
+        return [p for p in candidates if p.exists() and p.is_file()]
+
+    def source_type(self) -> str:
+        return SourceType.TERMINAL.value
+
+    def scan_records(self, since_epoch: float = 0.0) -> List[ActivityRecord]:
+        records: List[ActivityRecord] = []
+        for path in self.history_paths:
+            records.extend(self._parse_file(Path(path), since_epoch))
+        return records
+
+    def _parse_file(self, path: Path, since_epoch: float) -> List[ActivityRecord]:
+        records: List[ActivityRecord] = []
+        if not path.exists():
+            return records
+
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                lines = f.readlines()
+        except Exception:
+            return records
+
+        mtime = path.stat().st_mtime
+        current_timestamp = mtime
+
+        for idx, line in enumerate(lines):
+            line = line.strip()
+            if not line:
+                continue
+
+            # Detect Zsh extended format: ': <timestamp>:<duration>;<command>'
+            zsh_match = re.match(r"^:\s*(\d+):\d+;(.*)$", line)
+            if zsh_match:
+                current_timestamp = float(zsh_match.group(1))
+                command = zsh_match.group(2).strip()
+            # Detect Bash timestamp format '#<timestamp>'
+            elif line.startswith("#") and line[1:].strip().isdigit():
+                current_timestamp = float(line[1:].strip())
+                continue
+            else:
+                command = line
+
+            # Filter out entries older than checkpoint
+            if current_timestamp < since_epoch:
+                continue
+
+            # Skip single-word trivial commands
+            if command in {"ls", "cd", "pwd", "clear", "exit", "history", "q"}:
+                continue
+
+            sanitized_command = redact_secrets(command)
+            rec_id = hashlib.sha256(f"{path}_{idx}_{current_timestamp}_{command}".encode()).hexdigest()[:16]
+            iso_time = datetime.fromtimestamp(current_timestamp).isoformat()
+
+            records.append(
+                ActivityRecord(
+                    id=rec_id,
+                    source_type=self.source_type(),
+                    source_identifier=path.name,
+                    timestamp=current_timestamp,
+                    datetime_iso=iso_time,
+                    title=f"Terminal Command: {sanitized_command[:40]}",
+                    content=sanitized_command,
+                    location=str(path),
+                    metadata={"line_number": idx + 1, "raw_command": sanitized_command},
+                )
+            )
+
+        return records
