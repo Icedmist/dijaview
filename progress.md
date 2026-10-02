@@ -17,3 +17,13 @@
   - Added `docs/GETTING_STARTED.md` with Ollama / Gemma 2 setup and configuration instructions.
 - **Verification**:
   - GPG/SSH commit signing configured and active locally via `id_ed25519.pub`.
+
+### [Issue #3] Documentation Simplification, CLI Command Reference & Contributing Guide
+- **Date**: 2026-10-02
+- **Issue**: [Icedmist/dijaview#3](https://github.com/Icedmist/dijaview/issues/3)
+- **Scope**:
+  - Converted repository to public visibility.
+  - Standardized names and headings to clean sentence case.
+  - Simplified language to plain English and purged all em dashes.
+  - Added complete CLI shell command reference covering `index`, `query`, `status`, `serve`, `purge`, and `config`.
+  - Added `CONTRIBUTING.md` welcoming community contributions.

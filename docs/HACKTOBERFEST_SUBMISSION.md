@@ -10,7 +10,7 @@ tags: devchallenge, weekendchallenge, hf26challenge
 
 ## What I Built
 
-**DijaView** is an open-source, local-first search engine that lets you ask plain-English questions about everything you've done on your computer — without sending a single byte of personal data to the cloud.
+**Dijaview** is an open-source, local-first search engine that lets you ask plain-English questions about everything you have done on your computer, without sending any personal data to the cloud.
 
 Instead of manually grepping through project directories, scrolling endlessly through shell history, or searching through thousands of browser tabs:
 > *"Where did I save that API key documentation I looked at last Tuesday?"*  

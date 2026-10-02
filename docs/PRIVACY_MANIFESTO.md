@@ -56,4 +56,4 @@ Because DijaView is 100% open source under the MIT License:
 
 ---
 
-> *"Open innovation is not just about free code — it is about the right to own your personal intelligence without surrendering your autonomy."*
+> *"Open innovation is not just about free code: it is about the right to own your personal intelligence without surrendering your autonomy."*

@@ -1,179 +1,207 @@
-# DijaView 🔍
+# Dijaview
 
-> **Privacy-first, local-first computer activity & context search engine powered by Gemma 2.**  
-> *Ask questions about everything you've done on your computer — without a single byte leaving your machine.*
+> **A privacy-first, local search engine for your computer activity powered by Gemma 2.**  
+> *Ask questions about what you did on your computer without sending any data to the cloud.*
 
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Hacktoberfest 2026](https://img.shields.io/badge/Hacktoberfest-2026-orange.svg)](https://hacktoberfest.com)
-[![Model: Gemma 2](https://img.shields.io/badge/Model-Gemma%202%20(Open--Weight)-green.svg)](https://ai.google.dev/gemma)
-[![Local First](https://img.shields.io/badge/Privacy-100%25%20Local-success.svg)](#privacy-guarantee)
+[![Model: Gemma 2](https://img.shields.io/badge/Model-Gemma%202-green.svg)](https://ai.google.dev/gemma)
+[![Local first](https://img.shields.io/badge/Privacy-100%25%20Local-success.svg)](#privacy-guarantee)
+[![Open for contributions](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ---
 
-## 💡 The Problem
+## The problem
 
-How often do you ask yourself:
+Developers and computer users lose time every day trying to remember where they saw or did something:
 * *"Where did I save that API key documentation I read last Tuesday?"*
 * *"What was that complex curl command with custom headers I ran yesterday?"*
 * *"Which browser tab had the article about Fastify CORS configuration?"*
 * *"Where in my notes did I write down the database connection schema?"*
 
-Modern operating systems force you to remember **where** you put something (grep files, search browser history SQLite databases, scroll through bash history, or dig through notes folders). 
+Normally, you have to remember which tool you used, grep through folders, scroll through thousands of shell history lines, or dig through browser history tables.
 
-Commercial solutions like **Microsoft Recall** attempted to solve this by continuously capturing everything — but at the catastrophic cost of privacy: unencrypted plain-text SQLite databases, telemetry, and security vulnerabilities. Proprietary cloud tools like Rewind AI charge expensive recurring subscriptions and upload your private digital life to remote servers.
+Tools like Microsoft Recall tried to solve this, but they generated widespread security criticism. They stored plain text files and sent data across the network. Cloud based tools charge monthly subscription fees and upload your private digital life to remote servers.
 
 ---
 
-## ✨ Enter DijaView
+## What is Dijaview?
 
-**DijaView** (derived from *déjà vu*) is an open-source, local-first personal activity search engine. It runs entirely on your local hardware using **Google's Gemma 2 open-weight model** and an embedded vector index.
+Dijaview is an open source, local search engine for your computer activity. It runs entirely on your own computer using Google's Gemma 2 open-weight model and a local database.
 
-You ask in plain, natural English:
-```text
-> dijaview query "Where is that API key doc I looked at last Tuesday?"
+You ask in plain, everyday English:
+```bash
+dijaview query "Where is that API key doc I looked at last Tuesday?"
 ```
 
-DijaView searches your local terminal history, browser history, notes, and documents, applies temporal filters ("last Tuesday"), retrieves the relevant source chunks, and has Gemma 2 synthesize a direct answer with clickable local file and web citations.
+Dijaview searches your local shell history, browser history, notes, and recent documents. It recognizes time phrases like "last Tuesday", finds the right items, and uses Gemma 2 to give you a clear answer with direct file paths and links.
 
 ---
 
-## 🔒 The Privacy Guarantee
+## Privacy guarantee
 
-1. **Zero Telemetry:** 0 bytes are transmitted to any external server.
-2. **Local AI Inference:** Powered by **Gemma 2** running locally via Ollama or llama.cpp.
-3. **Local Vector Storage:** Embeddings and chunk metadata reside inside your local SQLite / Chroma vector database on disk.
-4. **Automated Secret Redaction:** API keys, private tokens, passwords, and `.env` files are automatically masked before ingestion.
-5. **Inspectable & Auditable:** 100% open-source code under the MIT license.
-
----
-
-## 🚀 Key Features
-
-* **Multi-Source Ingestion:**
-  * 🖥️ **Terminal Commands:** Parses timestamped history from `bash`, `zsh`, and `fish`.
-  * 🌐 **Browser History:** Safely reads local browser history databases (Chrome, Brave, Firefox) in read-only mode.
-  * 📝 **Local Notes & Documents:** Watches and indexes Markdown (`.md`), text (`.txt`), code repositories, and documentation.
-  * 🕒 **Recent File Touches:** Tracks newly modified or created files across designated directories.
-* **Temporal Query Resolution:**
-  * Understands relative and absolute time expressions: *"yesterday"*, *"last Tuesday"*, *"earlier this morning"*, *"two weeks ago"*.
-* **Open-Source AI Synthesis:**
-  * Leverages **Gemma 2 (2B / 9B)** to reason over retrieved snippets and formulate concise, helpful responses with direct references (`file:///...` and URLs).
-* **Spotlight & CLI Access:**
-  * Lightweight CLI for terminal power users (`dijaview query "..."`, `dijaview index`, `dijaview status`).
-  * Modern, distraction-free local web dashboard for interactive searches and timeline navigation.
+1. **Zero telemetry:** Zero bytes leave your computer.
+2. **Local AI reasoning:** Gemma 2 runs on your machine through Ollama or llama.cpp.
+3. **Local storage:** Your data and search index stay on your hard drive in a local SQLite database.
+4. **Automatic secret masking:** API keys, passwords, and private tokens are masked before indexing.
+5. **Open source:** The code is completely open under the MIT license, so you can inspect how it works.
 
 ---
 
-## 🏗️ Architecture at a Glance
+## Complete shell command reference
 
-```
-┌────────────────────────────────────────────────────────┐
-│                   Local Data Sources                   │
-│   • Shell History (~/.bash_history, ~/.zsh_history)    │
-│   • Browser History (Local Chrome/Firefox SQLite DB)   │
-│   • Workspace Notes & Markdown Files                   │
-│   • Git Commits & Modified Files                       │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│              Ingestion & Redaction Engine              │
-│   • Pluggable source adapters                          │
-│   • Automated regex-based secret/token scrubbing       │
-│   • Text chunking & timestamp normalization            │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│             Local Vector & Metadata Store              │
-│   • Local embeddings (nomic-embed-text / MiniLM)       │
-│   • Embedded vector storage (SQLite-vec / Chroma)      │
-│   • Temporal index (timestamps, source types, tags)    │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│              Gemma 2 Local RAG Pipeline                │
-│   • Temporal query parser ("last Tuesday" -> date)     │
-│   • Hybrid search: Vector similarity + keyword match   │
-│   • Gemma 2 reasoning & synthesis (via Ollama/local)   │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│                   User Interfaces                      │
-│   • CLI: `dijaview query "..."`                        │
-│   • Local Web UI: Interactive timeline & direct links  │
-└────────────────────────────────────────────────────────┘
+Dijaview comes with a straightforward command line interface that covers every part of your workflow:
+
+### 1. Ingesting and indexing activity (`dijaview index`)
+Scans your local activity sources and adds them to your local index.
+
+```bash
+# Index all enabled sources (terminal, browser, notes)
+dijaview index
+
+# Index only your shell commands
+dijaview index --source terminal
+
+# Index only your browser history
+dijaview index --source browser
+
+# Index only your notes directory
+dijaview index --source notes
+
+# Perform a fresh, full re-index from scratch
+dijaview index --rebuild
 ```
 
-For an in-depth breakdown, read [Architecture Guide](docs/ARCHITECTURE.md).
+### 2. Asking questions (`dijaview query`)
+Asks questions in natural language. Dijaview figures out the time frame, finds relevant records, and uses Gemma 2 to answer.
+
+```bash
+# General query with a time phrase
+dijaview query "Where did I save the API key notes last Tuesday?"
+
+# Query about shell commands
+dijaview query "What was the curl command I used to test CORS yesterday?"
+
+# Query restricted to a specific source
+dijaview query "Which article discussed Postgres index types?" --source browser
+
+# Quick search without calling Gemma 2 (pure local keyword and vector match)
+dijaview query "paystack webhook" --raw
+```
+
+### 3. Checking system health and stats (`dijaview status`)
+Shows you what is currently indexed, model availability, and disk usage.
+
+```bash
+dijaview status
+```
+*Output displays:*
+* Number of indexed terminal commands, browser visits, and notes.
+* Connection status to local Gemma 2 (via Ollama).
+* Local database location and size on disk.
+* Last indexing run time.
+
+### 4. Running the local web dashboard (`dijaview serve`)
+Starts an interactive local web user interface with a search bar and visual timeline.
+
+```bash
+# Start local dashboard on default port (8080)
+dijaview serve
+
+# Start on a custom port
+dijaview serve --port 3000
+```
+Then visit `http://localhost:8080` in your web browser.
+
+### 5. Managing privacy and purging data (`dijaview purge`)
+Lets you delete indexed data whenever you want.
+
+```bash
+# Delete indexed history from the last 2 hours
+dijaview purge --since "2 hours ago"
+
+# Delete all indexed browser history while keeping terminal commands
+dijaview purge --source browser
+
+# Completely wipe the entire local search index
+dijaview purge --all
+```
+
+### 6. Managing configuration (`dijaview config`)
+Inspects and modifies your local settings.
+
+```bash
+# Show current configuration settings
+dijaview config show
+
+# Set the active model
+dijaview config set model.name gemma2:2b
+
+# Add a new folder to watch for notes
+dijaview config add adapters.notes.directories "~/my-notes"
+```
 
 ---
 
-## 🛠️ Quickstart
+## Quick setup
 
 ### Prerequisites
-* **Python 3.10+**
-* **Ollama** installed with Gemma 2:
+* Python 3.10 or higher.
+* Ollama installed on your machine.
+* Pull the Gemma 2 model:
   ```bash
   ollama pull gemma2:2b
   ```
 
 ### Installation
 ```bash
-# Clone the repository
 git clone https://github.com/Icedmist/dijaview.git
 cd dijaview
 
-# Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Initial Indexing
+### First run
 ```bash
-# Ingest terminal history and local notes
-dijaview index --sources shell,notes
+# 1. Index your local shell history and notes
+dijaview index
 
-# Run your first query
-dijaview query "Where did I save the API key notes last Tuesday?"
+# 2. Ask your first question
+dijaview query "What projects did I work on yesterday?"
 ```
 
-See [Getting Started Guide](docs/GETTING_STARTED.md) for full configuration options.
+---
+
+## Open for contribution
+
+Dijaview is an open project and we welcome contributions from everyone.
+
+Here are great ways to contribute:
+* **Add new data adapters:** Help us build adapters for VS Code recent files, Obsidian vaults, Tmux sessions, or Docker containers.
+* **Improve time parsing:** Help extend temporal queries for different languages and formats.
+* **UI improvements:** Help build out the local web dashboard and keyboard shortcuts.
+* **Documentation & tutorials:** Improve setup guides for different Linux distributions, macOS, and Windows.
+
+Read our [Contributing guide](CONTRIBUTING.md) to get started.
 
 ---
 
-## 🏆 Hacktoberfest 2026 Submission
+## Documentation directory
 
-This project is built for the **Hacktoberfest 2026 Weekend Challenge 1: Build for a Friend** hosted on DEV.
-
-* **Target Categories:**
-  * 🥇 **Overall Challenge Winner**
-  * 🌟 **Best Use of Gemma** (Google's open-weight model)
-  * 🎧 **Best Use of ElevenLabs** (Voice query & audio answer synthesis)
-  * 📊 **Best Use of Sentry Agent Tracing** (Inference latency and execution tracing)
-* **Theme:** *"Build for a Friend"* — Built for a developer friend who constantly loses track of shell one-liners, documentation links, and scattered notes across long coding sessions.
-
-Read the complete submission post draft in [docs/HACKTOBERFEST_SUBMISSION.md](docs/HACKTOBERFEST_SUBMISSION.md).
+* [Architecture overview](docs/ARCHITECTURE.md)
+* [Privacy manifesto: Why open innovation matters](docs/PRIVACY_MANIFESTO.md)
+* [Data adapters specification](docs/ADAPTERS_SPEC.md)
+* [Getting started guide](docs/GETTING_STARTED.md)
+* [Hacktoberfest submission details](docs/HACKTOBERFEST_SUBMISSION.md)
+* [Contributing guidelines](CONTRIBUTING.md)
 
 ---
 
-## 📖 Documentation Directory
+## License
 
-* [System Architecture](docs/ARCHITECTURE.md)
-* [Privacy Manifesto: Why Open Innovation Matters](docs/PRIVACY_MANIFESTO.md)
-* [Source Adapters Technical Specification](docs/ADAPTERS_SPEC.md)
-* [Getting Started & Local Setup](docs/GETTING_STARTED.md)
-* [Hacktoberfest Submission Draft](docs/HACKTOBERFEST_SUBMISSION.md)
-
----
-
-## 📄 License
-
-Distributed under the [MIT License](LICENSE). Copyright © 2026 icedmist.
+Distributed under the [MIT License](LICENSE). Copyright (c) 2026 icedmist.
