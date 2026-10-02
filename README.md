@@ -201,6 +201,20 @@ dijaview permissions remove-filter ssn
 dijaview permissions reset
 ```
 
+### 9. Automatic background activity sync (`dijaview watch`)
+Runs a lightweight background watcher that automatically scans shell history, browser visits, and notes, keeping your local index synchronized without manual intervention.
+
+```bash
+# Start background watcher (scans every 30 seconds)
+dijaview watch
+
+# Run with a custom scan interval (e.g. every 60 seconds)
+dijaview watch --interval 60
+
+# Run a single incremental sync sweep and exit
+dijaview watch --once
+```
+
 ---
 
 ## Quick setup
