@@ -64,3 +64,17 @@
 - **Scope**:
   - Switched repository back to private visibility on GitHub (`Icedmist/dijaview`).
   - Updated `README.md` and `docs/HACKTOBERFEST_SUBMISSION.md` with Mohammed Adamu Aliyu ([@Adams-404](https://github.com/Adams-404)) as the central friend story for the Hacktoberfest challenge.
+
+### [Issue #11] Granular Privacy and Source Permissions Management
+- **Date**: 2026-10-02
+- **Issue**: [Icedmist/dijaview#11](https://github.com/Icedmist/dijaview/issues/11)
+- **PR**: [Icedmist/dijaview#12](https://github.com/Icedmist/dijaview/pull/12)
+- **Commit**: `7eae520` (Squash merge into `main`)
+- **Scope**:
+  - Implemented `PermissionsManager` subsystem in `dijaview/core/permissions.py` governing data source access, path whitelists and blacklists, file size caps, and custom secret redaction regular expressions.
+  - Updated `NotesAdapter`, `TerminalAdapter`, and `BrowserAdapter` to strictly verify source permissions, exclude blocked directory paths or glob patterns, enforce a 1 MB file size cap, and apply custom redactions.
+  - Implemented full CLI permissions commands (`dijaview permissions {show,enable,disable,allow-path,block-path,remove-path,add-filter,remove-filter,reset}`).
+  - Added interactive `/permissions` inspection command inside the terminal chat shell (`chat.py`).
+  - Added 8 unit tests in `tests/test_permissions.py` (22/22 tests passing with 100% success rate).
+  - Updated documentation across `README.md`, `docs/ARCHITECTURE.md`, `docs/GETTING_STARTED.md`, and `docs/PRIVACY_MANIFESTO.md`.
+
