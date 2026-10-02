@@ -19,15 +19,15 @@ Instead of manually grepping through project directories, scrolling endlessly th
 
 DijaView indexes your local shell commands, browser history, notes, and recent file changes, extracts temporal constraints (*"last Tuesday"*), and uses **Google's Gemma 2 open-weight model** to synthesize a direct answer with clickable links and source citations.
 
-### Built For a Friend
-I built DijaView for my friend **Alex**, a software engineer and open-source contributor who lives in the terminal, maintains multiple microservices, and constantly juggles 50+ open documentation tabs. 
+### Built for a friend
+I built Dijaview for my friend **Mohammed Adamu Aliyu** ([@Adams-404](https://github.com/Adams-404)), a software engineer and active builder who lives in the terminal, maintains multiple projects, and constantly juggles 50+ open documentation tabs. 
 
-Alex regularly lost 15 to 30 minutes every day trying to retrace their steps:
-> *"I ran this exact curl command three days ago that fixed a weird CORS preflight bug, and now I can't find it in my history!"*
+Mohammed regularly lost 15 to 30 minutes every day trying to retrace his steps:
+> *"I ran this exact curl command three days ago that fixed a weird CORS preflight bug, and now I cannot find it in my history!"*
 
-When commercial solutions like Microsoft Recall launched, Alex refused to touch them due to the blatant privacy nightmare of unencrypted surveillance software sending telemetry to corporate servers. Alex needed a tool that was **fast, local-first, zero-telemetry, and genuinely helpful**.
+When commercial solutions like Microsoft Recall launched, Mohammed refused to use them due to the privacy risks of unencrypted surveillance software sending telemetry to corporate servers. Mohammed needed a tool that was fast, local first, zero telemetry, and genuinely helpful.
 
-> **Alex's reaction when testing DijaView:**  
+> **Mohammed's reaction when testing Dijaview:**  
 > *"Wait, so I can literally just ask 'What was the curl command I used to test the captive portal CORS endpoint yesterday?' and it gives me the exact command with the headers right on my machine? And nothing goes to a remote server? This is what personal computing was supposed to be."*
 
 ---

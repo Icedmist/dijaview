@@ -40,6 +40,17 @@ Dijaview searches your local shell history, browser history, notes, and recent d
 
 ---
 
+## Built for a friend
+
+Dijaview was created for my friend Mohammed Adamu Aliyu ([@Adams-404](https://github.com/Adams-404)), a software engineer and active builder who spends hours in the terminal, maintains multiple projects, and constantly juggles dozens of open documentation tabs.
+
+Mohammed regularly lost time trying to retrace his commands and notes:
+> *"I ran this exact curl command three days ago that fixed a weird endpoint bug, and now I cannot find it in my history!"*
+
+Dijaview solves this directly on his local machine with zero data leaving his computer.
+
+---
+
 ## Privacy guarantee
 
 1. **Zero telemetry:** Zero bytes leave your computer.
