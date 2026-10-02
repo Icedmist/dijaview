@@ -41,3 +41,15 @@
   - Added dedicated Windows setup guide with PowerShell commands and winget.
   - Added dedicated macOS setup guide with Homebrew commands and zsh terminal.
   - Committed in separate platform-focused commits as requested.
+
+### [Issue #7] Initial Core Engine, Adapters, Gemma 2 Client & Chat REPL
+- **Date**: 2026-10-02
+- **Issue**: [Icedmist/dijaview#7](https://github.com/Icedmist/dijaview/issues/7)
+- **Scope**:
+  - Implemented core models and automated secret/credential redaction engine (`redactor.py`).
+  - Implemented natural language temporal query parser (`temporal.py`).
+  - Implemented modular data source adapters for Terminal (`bash`, `zsh`, `fish`, `powershell`), Browser (Chrome, Brave, Firefox read-only SQLite), and Notes (`.md`, `.txt`).
+  - Implemented embedded SQLite storage with FTS5 BM25 search and temporal filtering (`database.py`).
+  - Implemented local Gemma 2 Ollama client and RAG synthesis engine with source citation protocol (`gemma.py`, `search.py`).
+  - Implemented interactive terminal chat REPL (`chat.py`) and full CLI suite (`cli.py`).
+  - Added comprehensive 14-test unit test suite (`tests/`) with 100% passing tests.
