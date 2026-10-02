@@ -1,4 +1,4 @@
-# The DijaView Privacy Manifesto
+# The Dijaview Privacy Manifesto
 ### *Why Open Innovation is the Only Acceptable Foundation for Personal AI*
 
 ---
@@ -27,9 +27,9 @@ Closed, proprietary assistants force users into a false dichotomy:
 
 ## 3. Why Open Innovation Changes the Equation
 
-DijaView exists because **open innovation dismantles this false choice**. 
+Dijaview exists because **open innovation dismantles this false choice**. 
 
-Three open-source breakthroughs made DijaView possible:
+Three open-source breakthroughs made Dijaview possible:
 
 ### A. Open-Weight Foundation Models (Gemma 2)
 Historically, performing nuanced temporal reasoning over messy context required sending queries to massive remote frontier APIs like GPT-4. With the release of **Google's Gemma 2 (2B and 9B)**, high-fidelity reasoning, context synthesis, and source citation can run directly on consumer laptops and desktops with zero cloud calls.
@@ -40,19 +40,20 @@ Historically, performing nuanced temporal reasoning over messy context required 
 Projects like **SQLite-vec**, **ChromaDB**, and **LanceDB** allow semantic vector search to live inside an embedded binary. There is no external database daemon, no remote SaaS vector platform, and no network socket open to the public internet.
 
 ### C. Open-Source Ecosystem Auditing
-Because DijaView is 100% open source under the MIT License:
+Because Dijaview is 100% open source under the MIT License:
 * Anyone can inspect the code to verify that network sockets are never opened to external endpoints.
 * Security researchers can audit the credential-redaction regular expressions.
 * Users can tweak ingestion rules, add custom shell parsers, or swap out models at will.
 
 ---
 
-## 4. The DijaView Oath
+## 4. The Dijaview Oath
 
 1. **Local-First, Always:** Your logs, embeddings, and chat histories never cross the local network interface (`127.0.0.1`).
 2. **Transparent Storage:** Stored data is in standard, readable formats (SQLite / JSON) that you can inspect, export, or permanently delete with a single command.
 3. **No Vendor Lock-In:** You own your data, your index, and your models. You can run Gemma 2 2B on an ultrabook, or Gemma 2 9B on a workstation.
 4. **Active Defense:** Ingestion engines proactively redact secrets, bearer tokens, and private keys before they ever enter the index.
+5. **Granular User Agency:** You have complete authority over Dijaview's permissions. You can grant, revoke, modify, or add permissions for data sources, allow or block directories, set file size caps, and define custom secret redaction filters at any time.
 
 ---
 

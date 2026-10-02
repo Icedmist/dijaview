@@ -1,12 +1,12 @@
-# DijaView Architecture Specification
+# Dijaview Architecture Specification
 
-This document details the internal design, component relationships, data flow, and privacy boundaries of **DijaView**.
+This document details the internal design, component relationships, data flow, and privacy boundaries of **Dijaview**.
 
 ---
 
 ## 1. System Philosophy
 
-DijaView operates under four non-negotiable architectural invariants:
+Dijaview operates under four non-negotiable architectural invariants:
 
 1. **Local-First Boundary:** All raw computer activity data, embeddings, and generative inference execute strictly within `localhost`. No network sockets connect to external cloud AI providers for search or inference.
 2. **Zero-Trust Ingestion:** All raw text scraped from shell histories, browser tables, or markdown files passes through an automated regex and entropy redaction filter before reaching the vector store.
@@ -91,6 +91,13 @@ Before storage, every snippet is filtered through pattern matching to protect se
 * **Passwords & Connection Strings:** URI credentials (`postgres://user:pass@...`), basic auth headers.
 * **Excluded File Patterns:** Files named `.env*`, `id_rsa*`, `*credential*`, `*secret*` are strictly ignored during file scanning.
 
+### 3.3 Permissions and Access Control Engine
+Ingestion is strictly governed by the `PermissionsManager` subsystem before any disk reads occur:
+* **Source Level Gates:** Each adapter (`terminal`, `browser`, `notes`) must be explicitly enabled. Revoking a source prevents scanning entirely.
+* **Filesystem Whitelists & Blacklists:** Notes and document ingestion validates paths against allowed directories and blocked glob patterns before opening any file.
+* **Memory & Resource Safeguards:** Enforces maximum file size limits (default 1 MB) to prevent runaway memory usage on large binary dumps or search archives.
+* **User-Defined Redaction Rules:** Users can register custom regular expression filters to mask proprietary tokens, customer IDs, or personal identification data during ingestion.
+
 ---
 
 ## 4. Storage & Retrieval Strategy
@@ -133,7 +140,7 @@ The Query Analyzer executes two parallel tasks:
 Retrieved snippets are injected into Gemma 2's context with a strict citation protocol:
 
 ```text
-You are DijaView, an intelligent, privacy-first local activity assistant.
+You are Dijaview, an intelligent, privacy-first local activity assistant.
 Answer the user's question using ONLY the provided computer activity logs below.
 Always cite the exact timestamp, source file, or URL where the answer was found.
 If the answer is not in the logs, state clearly that no matching activity was found.

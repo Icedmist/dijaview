@@ -1,14 +1,25 @@
 import sys
 from typing import Optional
+from dijaview.config import Config
+from dijaview.core.permissions import PermissionsManager
+from dijaview.engine.gemma import GemmaClient
 from dijaview.engine.search import SearchEngine
 from dijaview.storage.database import Database
-from dijaview.engine.gemma import GemmaClient
 
 
-def start_interactive_chat(db: Optional[Database] = None, gemma: Optional[GemmaClient] = None):
+def start_interactive_chat(
+    db: Optional[Database] = None,
+    gemma: Optional[GemmaClient] = None,
+    config: Optional[Config] = None,
+):
     """Launches an interactive terminal chat REPL to query computer activity."""
-    db = db or Database()
-    gemma = gemma or GemmaClient()
+    config = config or Config()
+    db = db or Database(db_path=config.get("storage.db_path"))
+    gemma = gemma or GemmaClient(
+        model_name=config.get("model.name", "gemma2:2b"),
+        base_url=config.get("model.base_url", "http://localhost:11434"),
+    )
+    permissions = PermissionsManager(config=config)
     engine = SearchEngine(db=db, gemma=gemma)
 
     stats = db.get_stats()
@@ -37,13 +48,14 @@ def start_interactive_chat(db: Optional[Database] = None, gemma: Optional[GemmaC
 
         if prompt == "/help":
             print("\nAvailable shell commands:")
-            print("  /status  - Display local database stats")
-            print("  /help    - Show this help message")
-            print("  /exit    - Exit the interactive chat\n")
+            print("  /status       Display local database stats and model status")
+            print("  /permissions  Inspect active sources and path permissions")
+            print("  /help         Show this help message")
+            print("  /exit         Exit the interactive chat\n")
             print("Example questions you can ask:")
-            print("  - Where did I save that API key doc last Tuesday?")
-            print("  - What was that curl command I used yesterday?")
-            print("  - Which article did I read about postgres indexes?\n")
+            print("  Where did I save that API key doc last Tuesday?")
+            print("  What was that curl command I used yesterday?")
+            print("  Which article did I read about postgres indexes?\n")
             continue
 
         if prompt == "/status":
@@ -52,6 +64,17 @@ def start_interactive_chat(db: Optional[Database] = None, gemma: Optional[GemmaC
             for src, count in current_stats["by_source"].items():
                 print(f"  - {src}: {count}")
             print(f"Database: {current_stats['db_path']} ({current_stats['db_size_kb']} KB)\n")
+            continue
+
+        if prompt == "/permissions":
+            print("\nDijaview Permissions Summary:")
+            for src in ["terminal", "browser", "notes"]:
+                state = "Enabled" if permissions.is_source_enabled(src) else "Disabled"
+                print(f"  - {src.capitalize()}: {state}")
+            print(f"  Allowed Directories: {len(permissions.get_allowed_paths())}")
+            print(f"  Blocked Paths:       {len(permissions.get_blocked_paths())}")
+            print(f"  Custom Filters:      {len(permissions.get_custom_redactions())}")
+            print("Tip: Use 'dijaview permissions --help' in your terminal to modify permissions.\n")
             continue
 
         print("\nSearching activity logs...")
