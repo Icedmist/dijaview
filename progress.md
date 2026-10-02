@@ -55,3 +55,10 @@
   - Implemented local Gemma 2 Ollama client and RAG synthesis engine with source citation protocol (`gemma.py`, `search.py`).
   - Implemented interactive terminal chat REPL (`chat.py`) and full CLI suite (`cli.py`).
   - Added comprehensive 14-test unit test suite (`tests/`) with 100% passing tests.
+
+### [Issue #9] Personalize Friend Story for Mohammed Adamu Aliyu (@Adams-404) & Private Repo Status
+- **Date**: 2026-10-02
+- **Issue**: [Icedmist/dijaview#9](https://github.com/Icedmist/dijaview/issues/9)
+- **Scope**:
+  - Switched repository back to private visibility on GitHub (`Icedmist/dijaview`).
+  - Updated `README.md` and `docs/HACKTOBERFEST_SUBMISSION.md` with Mohammed Adamu Aliyu ([@Adams-404](https://github.com/Adams-404)) as the central friend story for the Hacktoberfest challenge.
