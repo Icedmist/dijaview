@@ -78,3 +78,16 @@
   - Added 8 unit tests in `tests/test_permissions.py` (22/22 tests passing with 100% success rate).
   - Updated documentation across `README.md`, `docs/ARCHITECTURE.md`, `docs/GETTING_STARTED.md`, and `docs/PRIVACY_MANIFESTO.md`.
 
+### [Issue #13] Local Web Dashboard and Background Sync Watcher
+- **Date**: 2026-10-03
+- **Issue**: [Icedmist/dijaview#13](https://github.com/Icedmist/dijaview/issues/13)
+- **PR**: [Icedmist/dijaview#14](https://github.com/Icedmist/dijaview/pull/14)
+- **Commit**: `e2e28dd` (Squash merge into `main`)
+- **Scope**:
+  - Implemented embedded local web dashboard server and REST API (`dijaview/web/server.py`) using Python standard library with dark theme, real-time activity timeline, natural language query search, source filtering, and permissions modal.
+  - Implemented automatic background sync watcher daemon (`dijaview/watcher/daemon.py`) for automated incremental scanning across terminal, browser, and notes.
+  - Added `dijaview serve [--port PORT] [--host HOST]` and `dijaview watch [--interval SECONDS] [--once]` CLI subcommands in `dijaview/cli.py`.
+  - Added unit test suites `tests/test_web_server.py` and `tests/test_watcher.py` (30/30 total tests passing).
+  - Updated `README.md` and `docs/GETTING_STARTED.md` with web dashboard and background sync documentation.
+
+
