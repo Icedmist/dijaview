@@ -29,3 +29,13 @@
   - Simplified language to plain English and purged all em dashes.
   - Added complete CLI shell command reference covering `index`, `query`, `status`, `serve`, `purge`, and `config`.
   - Added `CONTRIBUTING.md` welcoming community contributions.
+
+### [Issue #5] Multi-Platform Setup Guides & Interactive Chat Command
+- **Date**: 2026-10-02
+- **Issue**: [Icedmist/dijaview#5](https://github.com/Icedmist/dijaview/issues/5)
+- **Scope**:
+  - Added single-command interactive terminal chat REPL (`dijaview` or `dijaview chat`) with sample dialogue.
+  - Added dedicated Linux setup guide covering Ubuntu/Debian, Fedora/RHEL, and Arch Linux.
+  - Added dedicated Windows setup guide with PowerShell commands and winget.
+  - Added dedicated macOS setup guide with Homebrew commands and zsh terminal.
+  - Committed in separate platform-focused commits as requested.

@@ -167,7 +167,77 @@ You saved it in C:\Users\YourUser\Documents\notes\api_keys.md on Tuesday, Septem
 
 ---
 
-## 4. Configuration (`dijaview.yaml`)
+## 4. macOS setup guide
+
+### Step 1: Install Homebrew and prerequisites
+If you have not already installed Homebrew, install it from [brew.sh](https://brew.sh), then install Python, Git, and Ollama:
+
+```bash
+brew install python git ollama
+```
+
+### Step 2: Start Ollama and download Gemma 2
+You can start the Ollama background service or run the desktop app:
+
+```bash
+brew services start ollama
+```
+
+Pull Google's Gemma 2 model and the embedding model:
+
+```bash
+# Recommended default model (runs fast on Apple Silicon M1/M2/M3/M4)
+ollama pull gemma2:2b
+
+# Pull the embedding model
+ollama pull nomic-embed-text
+```
+
+### Step 3: Clone and install Dijaview
+Open Terminal (zsh) on your Mac:
+
+```bash
+git clone https://github.com/Icedmist/dijaview.git
+cd dijaview
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -e .
+```
+
+### Step 4: Run your initial index on macOS
+Dijaview will read your zsh history (`~/.zsh_history`), local Chrome or Brave history (`~/Library/Application Support/Google/Chrome/Default/History`), and your documents:
+
+```bash
+dijaview index
+```
+
+### Step 5: Start the interactive chat in macOS Terminal
+Run the single command `dijaview` to start chatting with Gemma 2:
+
+```bash
+dijaview
+# or
+dijaview chat
+```
+
+*Example session on macOS:*
+```text
+Dijaview (Interactive Local Shell)
+Powered by Gemma 2 • 100% Local • Zero Telemetry
+Type your question, or '/exit' to quit.
+
+>>> Where did I save that API key doc last Tuesday?
+Thinking...
+You saved it in ~/Documents/notes/api_keys.md on Tuesday, September 29 at 3:14 PM.
+
+>>> /exit
+```
+
+---
+
+## 5. Configuration (`dijaview.yaml`)
 
 Dijaview can be configured with an optional `dijaview.yaml` file in your project directory or in `~/.config/dijaview/config.yaml`:
 
