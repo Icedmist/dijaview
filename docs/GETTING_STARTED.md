@@ -95,7 +95,79 @@ Yesterday you worked on dijaview in ~/projects/dijaview and committed documentat
 
 ---
 
-## 3. Configuration (`dijaview.yaml`)
+## 3. Windows setup guide (PowerShell)
+
+### Step 1: Install prerequisites with winget
+Open PowerShell as an Administrator and install Python, Git, and Ollama using the Windows Package Manager (`winget`):
+
+```powershell
+winget install Python.Python.3.11
+winget install Git.Git
+winget install Ollama.Ollama
+```
+
+*Note: Restart your PowerShell terminal after installation so that Python, Git, and Ollama are available on your PATH.*
+
+### Step 2: Start Ollama and download Gemma 2
+Ollama typically starts automatically as a Windows background task in your system tray. In PowerShell, pull the models:
+
+```powershell
+# Pull the recommended Gemma 2 model
+ollama pull gemma2:2b
+
+# Pull the embedding model for vector search
+ollama pull nomic-embed-text
+```
+
+### Step 3: Clone and install Dijaview
+In PowerShell:
+
+```powershell
+git clone https://github.com/Icedmist/dijaview.git
+cd dijaview
+
+# Create and activate Python virtual environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# Install in editable mode
+pip install -e .
+```
+
+*Tip: If PowerShell blocks running the activate script, enable local scripts once by running `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`.*
+
+### Step 4: Run your initial index on Windows
+Dijaview automatically reads your PowerShell history (`%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`), Chrome browser history (`%LOCALAPPDATA%\Google\Chrome\User Data\Default\History`), and documents folder:
+
+```powershell
+dijaview index
+```
+
+### Step 5: Start the interactive chat in PowerShell
+Run the single command `dijaview` to start chatting with Gemma 2:
+
+```powershell
+dijaview
+# or
+dijaview chat
+```
+
+*Example session in PowerShell:*
+```text
+Dijaview (Interactive Local Shell)
+Powered by Gemma 2 • 100% Local • Zero Telemetry
+Type your question, or '/exit' to quit.
+
+>>> Where did I save that API key doc last Tuesday?
+Thinking...
+You saved it in C:\Users\YourUser\Documents\notes\api_keys.md on Tuesday, September 29 at 3:14 PM.
+
+>>> /exit
+```
+
+---
+
+## 4. Configuration (`dijaview.yaml`)
 
 Dijaview can be configured with an optional `dijaview.yaml` file in your project directory or in `~/.config/dijaview/config.yaml`:
 
