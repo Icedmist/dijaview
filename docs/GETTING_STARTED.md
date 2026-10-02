@@ -1,41 +1,61 @@
-# Getting Started with DijaView
+# Getting started with Dijaview
 
-Follow this guide to set up and run DijaView locally on your machine.
+Follow this guide to set up and run Dijaview locally on your system.
 
 ---
 
-## 1. Prerequisites
+## 1. General prerequisites
 
-* **Python 3.10 or higher**
-* **Git**
-* **Ollama** (for local Gemma 2 inference)
+* Python 3.10 or higher
+* Git
+* Ollama (for running Gemma 2 locally)
 
-### Install Ollama & Pull Gemma 2
-If you haven't installed Ollama yet:
-* **Linux:** `curl -fsSL https://ollama.com/install.sh | sh`
-* **macOS:** Download from [ollama.com/download](https://ollama.com/download)
-* **Windows:** Download the Windows installer from [ollama.com](https://ollama.com)
+---
 
-Pull the Gemma 2 model:
+## 2. Linux setup guide
+
+### Step 1: Install system packages
+Install Python, development tools, and Git for your distribution:
+
+**Ubuntu / Debian:**
 ```bash
-# Recommended default (compact, fast, runs on 4GB+ RAM):
-ollama pull gemma2:2b
-
-# Optional high-capacity model (for workstations with 16GB+ RAM / GPU):
-ollama pull gemma2:9b
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip git curl
 ```
 
-Also pull a lightweight embedding model:
+**Fedora / RHEL:**
 ```bash
+sudo dnf install -y python3 python3-pip git curl
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -Syu --noconfirm python python-pip git curl
+```
+
+### Step 2: Install Ollama and pull Gemma 2
+On Linux, install the Ollama daemon:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Verify that the Ollama service is active:
+```bash
+systemctl status ollama
+# If not running:
+sudo systemctl enable --now ollama
+```
+
+Pull Google's Gemma 2 model and the local embedding model:
+```bash
+# Recommended model (compact, fast, runs smoothly on 4GB+ RAM)
+ollama pull gemma2:2b
+
+# Embedding model for vector similarity
 ollama pull nomic-embed-text
 ```
 
----
-
-## 2. Installation
-
-Clone the private repository and set up a virtual environment:
-
+### Step 3: Clone and install Dijaview
 ```bash
 git clone https://github.com/Icedmist/dijaview.git
 cd dijaview
@@ -43,17 +63,43 @@ cd dijaview
 python3 -m venv .venv
 source .venv/bin/activate
 
-pip install -r requirements.txt
+pip install -e .
+```
+
+### Step 4: Run your initial index
+Scan your Linux shell history (`~/.bash_history` or `~/.zsh_history`) and notes:
+```bash
+dijaview index
+```
+
+### Step 5: Start the interactive terminal chat
+You can launch an interactive chat session directly in your Linux terminal:
+```bash
+dijaview
+# or
+dijaview chat
+```
+
+Dijaview will launch an interactive prompt where you can ask continuous questions about your activity:
+```text
+Dijaview (Interactive Local Shell)
+Powered by Gemma 2 • 100% Local • Zero Telemetry
+Type your question, or '/exit' to quit.
+
+>>> What projects did I commit to yesterday?
+Thinking...
+Yesterday you worked on dijaview in ~/projects/dijaview and committed documentation changes.
+
+>>> /exit
 ```
 
 ---
 
 ## 3. Configuration (`dijaview.yaml`)
 
-DijaView can be configured with an optional `dijaview.yaml` in your project root or `~/.config/dijaview/config.yaml`:
+Dijaview can be configured with an optional `dijaview.yaml` file in your project directory or in `~/.config/dijaview/config.yaml`:
 
 ```yaml
-# DijaView Configuration
 model:
   provider: "ollama"
   name: "gemma2:2b"
@@ -62,7 +108,6 @@ model:
 
 storage:
   db_path: "~/.local/share/dijaview/dijaview.db"
-  vector_store: "sqlite_vec"
 
 adapters:
   terminal:
@@ -92,30 +137,3 @@ privacy:
   redact_secrets: true
   ignore_dotfiles: true
 ```
-
----
-
-## 4. Running DijaView
-
-### Step 1: Index Your Local Activity
-Scan your configured adapters to build the initial local index:
-```bash
-# Index all enabled sources
-python -m dijaview.cli index
-
-# Or index a specific adapter
-python -m dijaview.cli index --source terminal
-```
-
-### Step 2: Query Your History
-Ask questions in plain English:
-```bash
-python -m dijaview.cli query "Where did I save the API key notes last Tuesday?"
-```
-
-### Step 3: Run the Local Web Dashboard (Optional)
-Launch the interactive web UI:
-```bash
-python -m dijaview.cli serve --port 8080
-```
-Then open [http://localhost:8080](http://localhost:8080) in your browser.

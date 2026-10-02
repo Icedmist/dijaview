@@ -54,7 +54,37 @@ Dijaview searches your local shell history, browser history, notes, and recent d
 
 Dijaview comes with a straightforward command line interface that covers every part of your workflow:
 
-### 1. Ingesting and indexing activity (`dijaview index`)
+### 1. Interactive terminal chat (`dijaview` or `dijaview chat`)
+Running `dijaview` with no arguments (or `dijaview chat`) opens an interactive chat session directly in your terminal. You can ask follow up questions about your computer activity continuously.
+
+```bash
+# Simply run dijaview to start chatting
+dijaview
+
+# Or explicitly launch chat mode
+dijaview chat
+```
+
+*Example session:*
+```text
+Dijaview (Interactive Local Shell)
+Powered by Gemma 2 • 100% Local • Zero Telemetry
+Type your question, or '/exit' to quit.
+
+>>> Where did I save that API key doc last Tuesday?
+Thinking...
+You saved it in ~/notes/paystack_integration.md on Tuesday, September 29 at 3:14 PM.
+
+>>> What was the curl command I used to test it?
+Thinking...
+At 3:16 PM on the same day, you ran:
+curl -H "Authorization: Bearer [REDACTED]" https://api.paystack.co/transaction/verify/abc123
+
+>>> /exit
+Goodbye!
+```
+
+### 2. Ingesting and indexing activity (`dijaview index`)
 Scans your local activity sources and adds them to your local index.
 
 ```bash
@@ -74,8 +104,8 @@ dijaview index --source notes
 dijaview index --rebuild
 ```
 
-### 2. Asking questions (`dijaview query`)
-Asks questions in natural language. Dijaview figures out the time frame, finds relevant records, and uses Gemma 2 to answer.
+### 3. Asking one-off questions (`dijaview query`)
+Asks a single question in natural language. Dijaview figures out the time frame, finds relevant records, and uses Gemma 2 to answer.
 
 ```bash
 # General query with a time phrase
@@ -91,19 +121,14 @@ dijaview query "Which article discussed Postgres index types?" --source browser
 dijaview query "paystack webhook" --raw
 ```
 
-### 3. Checking system health and stats (`dijaview status`)
+### 4. Checking system health and stats (`dijaview status`)
 Shows you what is currently indexed, model availability, and disk usage.
 
 ```bash
 dijaview status
 ```
-*Output displays:*
-* Number of indexed terminal commands, browser visits, and notes.
-* Connection status to local Gemma 2 (via Ollama).
-* Local database location and size on disk.
-* Last indexing run time.
 
-### 4. Running the local web dashboard (`dijaview serve`)
+### 5. Running the local web dashboard (`dijaview serve`)
 Starts an interactive local web user interface with a search bar and visual timeline.
 
 ```bash
@@ -113,9 +138,8 @@ dijaview serve
 # Start on a custom port
 dijaview serve --port 3000
 ```
-Then visit `http://localhost:8080` in your web browser.
 
-### 5. Managing privacy and purging data (`dijaview purge`)
+### 6. Managing privacy and purging data (`dijaview purge`)
 Lets you delete indexed data whenever you want.
 
 ```bash
@@ -129,7 +153,7 @@ dijaview purge --source browser
 dijaview purge --all
 ```
 
-### 6. Managing configuration (`dijaview config`)
+### 7. Managing configuration (`dijaview config`)
 Inspects and modifies your local settings.
 
 ```bash
