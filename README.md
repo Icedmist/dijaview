@@ -5,6 +5,8 @@
 
 ---
 
+[![CI](https://github.com/Icedmist/dijaview/actions/workflows/ci.yml/badge.svg)](https://github.com/Icedmist/dijaview/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/dijaview.svg)](https://pypi.org/project/dijaview/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Hacktoberfest 2026](https://img.shields.io/badge/Hacktoberfest-2026-orange.svg)](https://hacktoberfest.com)
 [![Model: Gemma 2](https://img.shields.io/badge/Model-Gemma%202-green.svg)](https://ai.google.dev/gemma)
@@ -228,6 +230,13 @@ dijaview watch --once
   ```
 
 ### Installation
+
+#### Option 1: Install from PyPI (recommended)
+```bash
+pip install dijaview
+```
+
+#### Option 2: Install from source
 ```bash
 git clone https://github.com/Icedmist/dijaview.git
 cd dijaview
@@ -235,7 +244,7 @@ cd dijaview
 python3 -m venv .venv
 source .venv/bin/activate
 
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### First run
