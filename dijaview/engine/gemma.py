@@ -52,6 +52,21 @@ class GemmaClient:
                     "response": result.get("response", "").strip(),
                     "total_duration": result.get("total_duration", 0),
                 }
+        except urllib.error.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.read().decode("utf-8")
+            except Exception:
+                pass
+            if "not found" in error_body.lower():
+                return {
+                    "available": False,
+                    "response": f"Model '{self.model_name}' not found in Ollama. Run 'ollama pull {self.model_name}' to download it.",
+                }
+            return {
+                "available": False,
+                "response": f"Error communicating with local Gemma 2: HTTP {e.code} - {e.reason}",
+            }
         except Exception as e:
             return {
                 "available": False,

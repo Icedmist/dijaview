@@ -1,8 +1,10 @@
 import argparse
 import json
+import platform
 import sys
+import urllib.request
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from dijaview import __version__
 from dijaview.adapters.browser import BrowserAdapter
@@ -14,6 +16,25 @@ from dijaview.engine.gemma import GemmaClient
 from dijaview.engine.search import SearchEngine
 from dijaview.interactive.chat import start_interactive_chat
 from dijaview.storage.database import Database
+
+
+def check_for_updates(timeout_seconds: float = 3.0) -> Optional[str]:
+    """Queries GitHub API for the latest release tag."""
+    url = "https://api.github.com/repos/Icedmist/dijaview/releases/latest"
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": f"dijaview/{__version__}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            tag = data.get("tag_name", "").lstrip("v")
+            return tag if tag else None
+    except Exception:
+        return None
 
 
 def print_permissions_summary(permissions: PermissionsManager) -> None:
@@ -93,6 +114,10 @@ def main(args: List[str] = None) -> int:
 
     # Command: status
     subparsers.add_parser("status", help="Show system status and index statistics")
+
+    # Command: version
+    version_parser = subparsers.add_parser("version", help="Show Dijaview version and check for GitHub release updates")
+    version_parser.add_argument("--check-update", action="store_true", help="Check GitHub for the latest release")
 
     # Command: purge
     purge_parser = subparsers.add_parser("purge", help="Delete indexed records from the local database")
@@ -229,6 +254,26 @@ def main(args: List[str] = None) -> int:
             print(f"    - {src.capitalize()}: {status_str}")
         custom_filters = permissions.get_custom_redactions()
         print(f"    - Custom Redaction Filters: {len(custom_filters)} active")
+        return 0
+
+    if parsed.command == "version":
+        print(f"Dijaview v{__version__}")
+        print(f"Python:        {platform.python_version()} ({platform.system()} {platform.machine()})")
+        print(f"Gemma 2 Model: {gemma.model_name} ({'Online' if gemma.is_available() else 'Offline'})")
+        print("Repository:    https://github.com/Icedmist/dijaview")
+        print("Releases:      https://github.com/Icedmist/dijaview/releases")
+
+        if parsed.check_update:
+            print("\nChecking for updates...")
+            latest = check_for_updates()
+            if latest:
+                if latest != __version__:
+                    print(f"Update available: v{latest} (current: v{__version__})")
+                    print(f"Download release at: https://github.com/Icedmist/dijaview/releases/tag/v{latest}")
+                else:
+                    print(f"You are running the latest version (v{__version__}).")
+            else:
+                print("Could not retrieve latest release information from GitHub.")
         return 0
 
     if parsed.command == "purge":

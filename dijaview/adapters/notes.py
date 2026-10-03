@@ -89,7 +89,7 @@ class NotesAdapter(BaseSourceAdapter):
                             continue
 
                         mtime = stat.st_mtime
-                        if mtime < since_epoch:
+                        if mtime <= since_epoch:
                             continue
 
                         records.extend(self._process_file(file_path, mtime, custom_rules=custom_rules))
@@ -106,12 +106,15 @@ class NotesAdapter(BaseSourceAdapter):
         except Exception:
             return records
 
-        if not content.strip():
+        if not content.strip() or "\x00" in content:
             return records
 
         # Chunk by markdown headers or large paragraphs
         chunks = self._chunk_content(content)
-        iso_time = datetime.fromtimestamp(mtime).isoformat()
+        try:
+            iso_time = datetime.fromtimestamp(mtime).isoformat()
+        except (ValueError, OSError, OverflowError):
+            return records
 
         for chunk_idx, chunk in enumerate(chunks):
             if not chunk.strip():

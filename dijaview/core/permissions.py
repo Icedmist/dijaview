@@ -1,3 +1,4 @@
+import copy
 import fnmatch
 import os
 import re
@@ -51,14 +52,14 @@ class PermissionsManager:
     def _ensure_permissions_initialized(self) -> None:
         """Initializes default permissions in config if missing."""
         if "permissions" not in self.config.data:
-            self.config.data["permissions"] = DEFAULT_PERMISSIONS.copy()
+            self.config.data["permissions"] = copy.deepcopy(DEFAULT_PERMISSIONS)
             self.config.save()
         else:
             # Backfill any missing top-level keys
             perms = self.config.data["permissions"]
             for key, val in DEFAULT_PERMISSIONS.items():
                 if key not in perms:
-                    perms[key] = val
+                    perms[key] = copy.deepcopy(val)
             self.config.save()
 
     @property
@@ -233,7 +234,7 @@ class PermissionsManager:
 
     def reset_defaults(self) -> None:
         """Resets all permissions back to default state."""
-        self.config.data["permissions"] = DEFAULT_PERMISSIONS.copy()
+        self.config.data["permissions"] = copy.deepcopy(DEFAULT_PERMISSIONS)
         self.save()
 
     def save(self) -> None:

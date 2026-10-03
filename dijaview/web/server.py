@@ -888,7 +888,15 @@ def start_web_server(
     auth_token: Optional[str] = None,
 ) -> None:
     """Launches the Dijaview local web dashboard server."""
-    server = create_server(host=host, port=port, config=config, auth_token=auth_token)
+    try:
+        server = create_server(host=host, port=port, config=config, auth_token=auth_token)
+    except OSError as e:
+        if e.errno == 98 or "address already in use" in str(e).lower():
+            print(f"Error: Port {port} is already in use by another process.")
+            print(f"Tip: Start with a different port using 'dijaview serve --port {port + 1}'.")
+            return
+        raise
+
     token = getattr(server, "auth_token", "")
     print("=" * 60)
     print("  Dijaview Local Web Dashboard")

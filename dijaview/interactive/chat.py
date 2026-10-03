@@ -1,5 +1,6 @@
 import sys
 from typing import Optional
+from dijaview import __version__
 from dijaview.config import Config
 from dijaview.core.permissions import PermissionsManager
 from dijaview.engine.gemma import GemmaClient
@@ -46,10 +47,20 @@ def start_interactive_chat(
             print("Goodbye!")
             break
 
+        if prompt == "/version":
+            print(f"\nDijaview v{__version__}\n")
+            continue
+
+        if prompt == "/clear":
+            print("\033c", end="")
+            continue
+
         if prompt == "/help":
             print("\nAvailable shell commands:")
             print("  /status       Display local database stats and model status")
             print("  /permissions  Inspect active sources and path permissions")
+            print("  /version      Show current Dijaview version")
+            print("  /clear        Clear terminal screen")
             print("  /help         Show this help message")
             print("  /exit         Exit the interactive chat\n")
             print("Example questions you can ask:")
@@ -75,6 +86,10 @@ def start_interactive_chat(
             print(f"  Blocked Paths:       {len(permissions.get_blocked_paths())}")
             print(f"  Custom Filters:      {len(permissions.get_custom_redactions())}")
             print("Tip: Use 'dijaview permissions --help' in your terminal to modify permissions.\n")
+            continue
+
+        if prompt.startswith("/"):
+            print(f"\nUnknown command: '{prompt}'. Type '/help' for available commands.\n")
             continue
 
         print("\nSearching activity logs...")

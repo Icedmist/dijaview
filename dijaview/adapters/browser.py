@@ -109,7 +109,10 @@ class BrowserAdapter(BaseSourceAdapter):
                 clean_title = redact_secrets(title or url, custom_rules=custom_rules)
                 clean_url = redact_secrets(url, custom_rules=custom_rules)
                 rec_id = hashlib.sha256(f"{url}_{unix_time}".encode()).hexdigest()[:16]
-                iso_time = datetime.fromtimestamp(unix_time).isoformat()
+                try:
+                    iso_time = datetime.fromtimestamp(unix_time).isoformat()
+                except (ValueError, OSError, OverflowError):
+                    continue
 
                 records.append(
                     ActivityRecord(
@@ -164,7 +167,10 @@ class BrowserAdapter(BaseSourceAdapter):
                 clean_title = redact_secrets(title or url, custom_rules=custom_rules)
                 clean_url = redact_secrets(url, custom_rules=custom_rules)
                 rec_id = hashlib.sha256(f"{url}_{unix_time}".encode()).hexdigest()[:16]
-                iso_time = datetime.fromtimestamp(unix_time).isoformat()
+                try:
+                    iso_time = datetime.fromtimestamp(unix_time).isoformat()
+                except (ValueError, OSError, OverflowError):
+                    continue
 
                 records.append(
                     ActivityRecord(

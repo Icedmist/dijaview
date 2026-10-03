@@ -47,12 +47,15 @@ class TerminalAdapter(BaseSourceAdapter):
             return records
 
         try:
+            stat = path.stat()
+            mtime = stat.st_mtime
+            if mtime <= since_epoch:
+                return records
             with open(path, "r", encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
         except Exception:
             return records
 
-        mtime = path.stat().st_mtime
         current_timestamp = mtime
 
         for idx, line in enumerate(lines):
@@ -60,20 +63,23 @@ class TerminalAdapter(BaseSourceAdapter):
             if not line:
                 continue
 
+            has_explicit_timestamp = False
             # Detect Zsh extended format: ': <timestamp>:<duration>;<command>'
             zsh_match = re.match(r"^:\s*(\d+):\d+;(.*)$", line)
             if zsh_match:
                 current_timestamp = float(zsh_match.group(1))
                 command = zsh_match.group(2).strip()
+                has_explicit_timestamp = True
             # Detect Bash timestamp format '#<timestamp>'
             elif line.startswith("#") and line[1:].strip().isdigit():
                 current_timestamp = float(line[1:].strip())
+                has_explicit_timestamp = True
                 continue
             else:
                 command = line
 
-            # Filter out entries older than checkpoint
-            if current_timestamp < since_epoch:
+            # Filter out entries older than checkpoint if explicit timestamp is known
+            if has_explicit_timestamp and current_timestamp < since_epoch:
                 continue
 
             # Skip single-word trivial commands
@@ -81,8 +87,17 @@ class TerminalAdapter(BaseSourceAdapter):
                 continue
 
             sanitized_command = redact_secrets(command, custom_rules=custom_rules)
-            rec_id = hashlib.sha256(f"{path}_{idx}_{current_timestamp}_{command}".encode()).hexdigest()[:16]
-            iso_time = datetime.fromtimestamp(current_timestamp).isoformat()
+            if has_explicit_timestamp:
+                rec_id = hashlib.sha256(f"{path}_{current_timestamp}_{command}".encode()).hexdigest()[:16]
+            else:
+                rec_id = hashlib.sha256(f"{path}_{idx}_{command}".encode()).hexdigest()[:16]
+            try:
+                iso_time = datetime.fromtimestamp(current_timestamp).isoformat()
+            except (ValueError, OSError, OverflowError):
+                try:
+                    iso_time = datetime.fromtimestamp(mtime).isoformat()
+                except Exception:
+                    continue
 
             records.append(
                 ActivityRecord(
