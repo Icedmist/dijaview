@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/dijaview-logo.svg" alt="Dijaview Logo" width="128" height="128">
+</p>
+
 # Dijaview
 
 > **A privacy-first, local search engine for your computer activity powered by Gemma 2.**  
@@ -53,13 +57,18 @@ Dijaview solves this directly on his local machine with zero data leaving his co
 
 ---
 
-## Privacy guarantee
+## Why open matters
 
-1. **Zero telemetry:** Zero bytes leave your computer.
-2. **Local AI reasoning:** Gemma 2 runs on your machine through Ollama or llama.cpp. Gemma 2 2B is lightweight and fast on CPU; Gemma 2 9B is also supported.
-3. **Local storage with user isolation:** Your data stays on your hard drive in a local SQLite database with user-only permissions (`chmod 600`). It is stored unencrypted at rest, relying on OS full-disk encryption.
-4. **Automated secret masking (best-effort):** API keys (`ghp_`, `sk_live_`, `pk_live_`), JWTs, passwords, CLI credentials (`mysql -p`, `curl -u`, `sshpass -p`), and private tokens are masked before indexing. Redaction is heuristic and best-effort; you can add custom regex filters with `dijaview permissions add-filter`.
-5. **Open source:** The code is completely open under the MIT license, so you can inspect how it works.
+Your computer activity log is the single most intimate record of your digital life. Entrusting it to closed commercial clouds or opaque binaries creates surveillance and security risks.
+
+Here is why open innovation is the only acceptable architecture for Dijaview:
+
+1. **Local Gemma 2 reasoning:** State-of-the-art language synthesis runs entirely on your own CPU or GPU through Google's Gemma 2 open weights. Zero bytes ever leave your device.
+2. **Absolute zero telemetry:** No remote tracking, no analytics pings, no cloud diagnostics, and no corporate servers.
+3. **Auditable secret redaction:** Secret scrubbing is handled by transparent, inspectable regular expressions in `redactor.py` (masking API keys, JWTs, AWS credentials, and CLI passwords). Redaction is heuristic and best-effort; users can audit every pattern and define custom filters with `dijaview permissions add-filter`.
+4. **Swappable models without lock-in:** The engine is model-agnostic. You can run Gemma 2 2B on an everyday laptop, or switch seamlessly to Gemma 2 9B for deeper synthesis on machines with 16GB+ RAM.
+5. **Tradeoff transparency: 2B model realities:** Gemma 2 2B runs efficiently on consumer CPUs with ~2 GB of memory, but 2-billion parameter models have real limitations: their answers can be terse or overly literal when synthesizing complex records. To overcome this, Dijaview pairs Gemma 2 with deterministic temporal parsing and BM25 candidate ranking, grounding the model in verified facts with exact file citations.
+6. **Local user-isolated storage:** Data stays on your hard drive in a local SQLite database with user-only permissions (`chmod 600`). Read the full [Privacy Manifesto](docs/PRIVACY_MANIFESTO.md) for details.
 
 ---
 
@@ -217,6 +226,17 @@ dijaview watch --interval 60
 dijaview watch --once
 ```
 
+### 10. Checking version and release updates (`dijaview version`)
+Displays version and runtime information, or queries GitHub for new releases:
+
+```bash
+# Show version, Python runtime, and Gemma 2 model status
+dijaview version
+
+# Check GitHub for the latest release
+dijaview version --check-update
+```
+
 ---
 
 ## Quick setup
@@ -233,9 +253,10 @@ dijaview watch --once
 
 ### Installation
 
-#### Option 1: Install from PyPI (recommended)
+#### Option 1: Install from GitHub Releases (recommended)
+Download wheel or source archive from [GitHub Releases](https://github.com/Icedmist/dijaview/releases):
 ```bash
-pip install dijaview
+pip install https://github.com/Icedmist/dijaview/releases/download/v0.1.0/dijaview-0.1.0-py3-none-any.whl
 ```
 
 #### Option 2: Install from source

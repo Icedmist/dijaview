@@ -40,5 +40,6 @@ jobs:
       - name: Verify CLI entrypoint
         run: |
           dijaview --version
+          dijaview version
           dijaview status
           dijaview permissions show

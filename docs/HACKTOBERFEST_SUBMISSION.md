@@ -10,6 +10,10 @@ tags: devchallenge, weekendchallenge, hf26challenge
 
 ## What I built
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Icedmist/dijaview/main/assets/dijaview-logo.svg" alt="Dijaview Logo" width="140" height="140">
+</p>
+
 **Dijaview** is an open-source, local-first search engine that lets you ask plain-English questions about everything you have done on your computer, without sending any personal data to the cloud.
 
 Instead of manually grepping through project directories, scrolling endlessly through shell history, or searching through thousands of browser tabs:
@@ -112,19 +116,31 @@ Dijaview is engineered from the ground up around **open-source AI** and local ex
 
 ---
 
-## Why does open innovation matter?
+## Why open matters
 
-Your computer activity log is the **single most intimate record of your digital life**: every command you typed, every documentation article you read, every draft note you scribbled, and every project you touched.
+Your computer activity log is the **single most intimate record of your digital life**: every command you typed, every documentation article you read, every draft note you scribbled, and every project you touched. Entrusting this data to a closed system is unacceptable.
 
-Closed AI solutions create severe risks:
-* **Corporate Surveillance:** Closed cloud tools upload telemetry and private activity logs to remote corporate servers.
-* **Security Exposure:** Closed implementations have stored unencrypted screenshots that infostealers immediately learned to exploit.
-* **Artificial Paywalls:** Closed tools charge subscription fees for search capabilities that belong on your operating system.
+Here is why open architecture is the only viable foundation for personal activity search:
 
-**Open innovation solves this completely:**
-* **True Data Sovereignty:** With open-weight models like **Gemma 2**, state-of-the-art reasoning runs directly on your own silicon. 0 bytes ever leave your device.
-* **Permanent Freedom:** Open weights cannot be discontinued or monetized behind paywalls. Once on your machine, it is yours forever.
-* **Verifiable Security:** Because Dijaview is 100% open-source, you can inspect every line of code to verify that network sockets never open to outside servers.
+1. **Local Gemma 2 intelligence:**  
+   Google's Gemma 2 open weights make it possible to run sophisticated language models entirely on personal hardware. The model runs locally via Ollama or llama.cpp, meaning your questions and retrieved records never leave your machine. You get the benefits of modern AI without sending your digital life to a corporate server.
+
+2. **Absolute zero telemetry:**  
+   Closed commercial software routinely phones home with diagnostic logs, usage metrics, and behavioral telemetry. Dijaview has zero network telemetry. There are no tracking beacons, no analytics pings, and no cloud dependencies. The only network socket ever created is an optional local web server bound to `127.0.0.1` and protected by a random per-launch authentication token.
+
+3. **Auditable redaction over black-box promises:**  
+   In privacy software, "trust us" is not a security guarantee. Proprietary tools hide their filtering behind closed APIs. Dijaview's secret scrubbing rules are completely open, inspectable regular expressions in `redactor.py`. Anyone can audit how Stripe keys, JWTs, AWS credentials, and CLI passwords are sanitized. If a specific format is missing, you can add custom rules with `dijaview permissions add-filter` rather than hoping a third party protects you.
+
+4. **Swappable models and no vendor lock-in:**  
+   Dijaview is not married to a single model provider or cloud platform. Because the engine interfaces through standard local endpoints, you can swap models freely. You can start with Gemma 2 2B, switch to Gemma 2 9B for deeper synthesis, or plug in any other open-weight model supported by Ollama without rewriting core business logic.
+
+5. **Naming the tradeoff: 2B model limitations:**  
+   Being honest about trade-offs is essential in open-source engineering. The default Gemma 2 2B model is remarkably fast and runs comfortably on modest laptop CPUs with less than 2 GB of memory. But a 2-billion parameter model has real weaknesses:
+   * Its answers can be terse or overly literal.
+   * When multiple complex records are retrieved, 2B models can struggle with subtle reasoning, occasionally producing flat summaries or missing nuanced connections.
+   * It cannot handle massive prompt contexts without losing coherence.
+
+   This tradeoff is precisely why Dijaview does not rely on the LLM to search. Instead, deterministic Python regex extracts dates, and SQLite FTS5 with BM25 ranking finds the most relevant records first. Gemma 2 is only asked to synthesize pre-filtered, verified records and cite their exact line locations. And when a user has more RAM and needs richer reasoning, the open architecture allows an instant upgrade to the 9B model.
 
 ---
 

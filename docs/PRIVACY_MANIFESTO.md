@@ -29,21 +29,29 @@ Closed, proprietary assistants force users into a false dichotomy:
 
 Dijaview exists because **open innovation dismantles this false choice**. 
 
-Three open-source breakthroughs made Dijaview possible:
+Five foundational pillars make Dijaview trustworthy:
 
-### A. Open-Weight Foundation Models (Gemma 2)
-Historically, performing nuanced temporal reasoning over messy context required sending queries to massive remote frontier APIs like GPT-4. With the release of **Google's Gemma 2 (2B and 9B)**, high-fidelity reasoning, context synthesis, and source citation can run directly on consumer laptops and desktops with zero cloud calls.
-* **Open weights mean data sovereignty:** The neural network weights execute on your physical CPU/GPU. No remote company can see your query or your activity logs.
-* **Zero recurring cost:** Once downloaded, running queries costs $0.00. No credit cards, no token limits, no sudden subscription tier paywalls.
+### A. Local Gemma 2 Intelligence
+Historically, performing context synthesis over messy logs required sending queries to remote commercial APIs. With the release of **Google's Gemma 2 (2B and 9B)**, high-fidelity reasoning, context synthesis, and source citation run directly on consumer laptops and desktops with zero cloud calls.
+* **Open weights mean data sovereignty:** The neural network weights execute on your physical CPU or GPU. No remote company can see your query or your activity logs.
+* **Zero recurring cost:** Once downloaded, running queries costs nothing. No credit cards, no token limits, and no sudden subscription paywalls.
 
-### B. Open-Source Embedded Vector Databases
-Projects like **SQLite-vec**, **ChromaDB**, and **LanceDB** allow semantic vector search to live inside an embedded binary. There is no external database daemon, no remote SaaS vector platform, and no network socket open to the public internet.
+### B. Absolute Zero Telemetry
+Commercial tools constantly leak diagnostics, event counters, and behavioral telemetry back to mother ships. Dijaview collects zero telemetry. No tracking beacons, no analytics pings, and no cloud dependencies exist anywhere in the codebase. The only network socket ever created is an optional local web server bound to `127.0.0.1` and protected by a random per-launch authentication token.
 
-### C. Open-Source Ecosystem Auditing
-Because Dijaview is 100% open source under the MIT License:
-* Anyone can inspect the code to verify that network sockets are never opened to external endpoints.
-* Security researchers can audit the credential-redaction regular expressions.
-* Users can tweak ingestion rules, add custom shell parsers, or swap out models at will.
+### C. Auditable Redaction Over Black-Box Promises
+In privacy software, "trust us" is not a security guarantee. Proprietary tools hide their filtering behind closed APIs. Dijaview's secret scrubbing rules are completely open, inspectable regular expressions. Anyone can audit how Stripe keys, JWTs, AWS credentials, and CLI passwords are sanitized. If a specific format is missing, you can add custom rules with `dijaview permissions add-filter` rather than hoping a third party protects you.
+
+### D. Swappable Models and Freedom From Lock-In
+Dijaview is model-agnostic. Because the inference layer connects through standard local endpoints (Ollama or llama.cpp), you are never trapped. You can run Gemma 2 2B on an ultrabook, upgrade to Gemma 2 9B on a developer workstation, or test newer open-weight models as the open-source ecosystem advances.
+
+### E. Naming the Tradeoff: 2B Model Realities
+Being honest about tradeoffs is essential in open-source engineering. The default Gemma 2 2B model is remarkably fast and runs comfortably on modest laptop CPUs with less than 2 GB of memory. But a 2-billion parameter model has real weaknesses:
+* Its answers can be terse or overly literal.
+* When multiple complex records are retrieved, 2B models can struggle with subtle reasoning, occasionally producing flat summaries or missing nuanced connections.
+* It cannot handle massive prompt contexts without losing coherence.
+
+This tradeoff is precisely why Dijaview does not rely on the LLM to search. Instead, deterministic Python regex extracts dates, and SQLite FTS5 with BM25 ranking finds the most relevant records first. Gemma 2 is only asked to synthesize pre-filtered, verified records and cite their exact line locations. And when a user has more RAM and needs richer reasoning, the open architecture allows an instant upgrade to the 9B model.
 
 ---
 

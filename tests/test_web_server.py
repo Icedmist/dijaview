@@ -83,11 +83,13 @@ class TestWebServer(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(f"{self.base_url}/")
         self.assertEqual(ctx.exception.code, 401)
+        ctx.exception.close()
 
         # API without token
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(f"{self.base_url}/api/status")
         self.assertEqual(ctx.exception.code, 401)
+        ctx.exception.close()
 
     def test_invalid_host_header_rejected(self):
         req = urllib.request.Request(
@@ -97,6 +99,7 @@ class TestWebServer(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(req)
         self.assertEqual(ctx.exception.code, 403)
+        ctx.exception.close()
 
     def test_no_cors_headers(self):
         req = self._authed_request("/api/status")

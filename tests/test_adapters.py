@@ -38,6 +38,16 @@ class TestAdapters(unittest.TestCase):
             self.assertIn("API Integration", records[0].title)
             self.assertIn("webhook endpoint", records[0].content)
 
+    def test_notes_adapter_skips_binary_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bin_file = Path(tmpdir) / "corrupt.txt"
+            bin_file.write_bytes(b"\x00\x01\x02\x03\x00corrupt binary content")
+
+            adapter = NotesAdapter(directories=[tmpdir])
+            records = adapter.scan_records()
+
+            self.assertEqual(len(records), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
