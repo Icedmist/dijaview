@@ -113,4 +113,18 @@
   - Updated `README.md` with CI build badge, PyPI version badge, and `pip install dijaview` instructions.
   - Verified package builds via `build` and `twine check dist/*` (PASSED on both sdist and wheel).
 
+### [Issue #17] Web Dashboard Security Hardening, Redactor Expansion & Search Quality
+- **Date**: 2026-10-03
+- **Issue**: [Icedmist/dijaview#17](https://github.com/Icedmist/dijaview/issues/17)
+- **PR**: [Icedmist/dijaview#18](https://github.com/Icedmist/dijaview/pull/18)
+- **Commit**: `4e30f19` (Squash merge into `main`)
+- **Scope**:
+  - Web Dashboard Security: Removed `Access-Control-Allow-Origin: *`, added strict `Host` and `Origin` header validation against localhost/127.0.0.1/[::1] to protect against DNS rebinding, and enforced random per-launch session token authentication on all `/api/*` routes and dashboard root.
+  - Redactor Expansion: Added patterns for Paystack and Stripe live/test keys, CLI credentials (`mysql -p`, `curl -u`, `sshpass -p`), JWT tokens, AWS secrets, and shell `export` statements. Added 10 unit tests. Documented best-effort heuristic nature.
+  - Search Quality: Filtered English stopwords and query intent verbs (`look`, `find`, `see`, `search`, etc.) from FTS queries and enabled SQLite FTS5 `bm25()` ranking to order results by keyword relevance.
+  - Database File Permissions: Enforced user-only permissions (`chmod 600`) on `dijaview.db`. Stated clearly in documentation that storage is unencrypted at rest, relying on OS full-disk encryption.
+  - Prompt Injection Defenses: Enclosed retrieved records in structured `<activity_record>` XML tags, sanitized untrusted snippet content, and updated system prompt with strict anti-injection rules.
+  - Documentation and Submission Post: Set `published: false` in draft frontmatter, updated friend story with authentic feedback from Mohammed Adamu Aliyu ([@Adams-404](https://github.com/Adams-404)), removed Sentry category, accurately differentiated deterministic temporal parsing from Gemma 2 answer synthesis, included real CLI demo output, and added a Limitations section.
+  - Test Suite: Expanded unit test coverage from 30 to 41 unit tests with 100% passing results across all Python versions on CI.
+
 
