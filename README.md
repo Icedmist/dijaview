@@ -56,9 +56,9 @@ Dijaview solves this directly on his local machine with zero data leaving his co
 ## Privacy guarantee
 
 1. **Zero telemetry:** Zero bytes leave your computer.
-2. **Local AI reasoning:** Gemma 2 runs on your machine through Ollama or llama.cpp.
-3. **Local storage:** Your data and search index stay on your hard drive in a local SQLite database.
-4. **Automatic secret masking:** API keys, passwords, and private tokens are masked before indexing.
+2. **Local AI reasoning:** Gemma 2 runs on your machine through Ollama or llama.cpp. Gemma 2 2B is lightweight and fast on CPU; Gemma 2 9B is also supported.
+3. **Local storage with user isolation:** Your data stays on your hard drive in a local SQLite database with user-only permissions (`chmod 600`). It is stored unencrypted at rest, relying on OS full-disk encryption.
+4. **Automated secret masking (best-effort):** API keys (`ghp_`, `sk_live_`, `pk_live_`), JWTs, passwords, CLI credentials (`mysql -p`, `curl -u`, `sshpass -p`), and private tokens are masked before indexing. Redaction is heuristic and best-effort; you can add custom regex filters with `dijaview permissions add-filter`.
 5. **Open source:** The code is completely open under the MIT license, so you can inspect how it works.
 
 ---
@@ -142,7 +142,7 @@ dijaview status
 ```
 
 ### 5. Running the local web dashboard (`dijaview serve`)
-Starts an interactive local web user interface with a search bar and visual timeline.
+Starts an interactive local web user interface with a search bar and visual timeline. Dijaview protects the dashboard with strict Host header validation, no cross-origin sharing (CORS), and a randomized per-launch authentication token printed in the terminal URL.
 
 ```bash
 # Start local dashboard on default port (8080)
@@ -224,9 +224,11 @@ dijaview watch --once
 ### Prerequisites
 * Python 3.10 or higher.
 * Ollama installed on your machine.
-* Pull the Gemma 2 model:
+* Pull the Gemma 2 model (2B default, or 9B for deeper reasoning):
   ```bash
   ollama pull gemma2:2b
+  # Or for machines with 16GB+ RAM:
+  # ollama pull gemma2:9b
   ```
 
 ### Installation

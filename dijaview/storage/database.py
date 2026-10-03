@@ -7,6 +7,29 @@ from typing import Dict, List, Optional, Any
 
 from dijaview.core.models import ActivityRecord, TimeRange
 
+STOPWORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are",
+    "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but",
+    "by", "can", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for",
+    "from", "further", "had", "has", "have", "having", "he", "her", "here", "hers", "herself",
+    "him", "himself", "his", "how", "i", "if", "in", "into", "is", "it", "its", "itself",
+    "me", "more", "most", "my", "myself", "no", "nor", "not", "of", "off", "on", "once",
+    "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same",
+    "she", "should", "so", "some", "such", "than", "that", "the", "their", "theirs", "them",
+    "themselves", "then", "there", "these", "they", "this", "those", "through", "to", "too",
+    "under", "until", "up", "very", "was", "we", "were", "what", "when", "where", "which",
+    "while", "who", "whom", "why", "with", "would", "you", "your", "yours", "yourself", "yourselves",
+    "look", "looked", "looking", "find", "see", "show", "tell", "give", "search", "searched",
+    "check", "checked", "get", "got", "read", "use", "used", "using", "work", "worked", "working",
+    "open", "opened", "ran", "run", "running"
+}
+
+TEMPORAL_WORDS = {
+    "yesterday", "today", "tomorrow", "last", "past", "ago", "tuesday", "monday",
+    "wednesday", "thursday", "friday", "saturday", "sunday", "morning", "afternoon",
+    "evening", "night", "week", "month", "year", "days", "hours", "minutes", "seconds"
+}
+
 
 class Database:
     """Embedded SQLite database managing full-text search and temporal metadata."""
@@ -69,6 +92,11 @@ class Database:
                 )
             """)
             conn.commit()
+        try:
+            if self.db_path.exists():
+                os.chmod(self.db_path, 0o600)
+        except Exception:
+            pass
 
     def insert_records(self, records: List[ActivityRecord]) -> int:
         if not records:
@@ -116,24 +144,39 @@ class Database:
         source_type: Optional[str] = None,
         limit: int = 10,
     ) -> List[ActivityRecord]:
-        """Performs full-text search with temporal and source filtering."""
+        """Performs full-text search with temporal filtering and BM25 relevance ranking."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
-            # Sanitize FTS query string
+            # Sanitize FTS query string and extract words
             clean_query = "".join(c if c.isalnum() or c.isspace() else " " for c in query).strip()
-            fts_query_parts = clean_query.split()
+            raw_terms = clean_query.split()
 
-            if not fts_query_parts:
-                # Return most recent if empty query
-                where_clauses = ["1=1"]
-                params: List[Any] = []
+            # Strip English stopwords and temporal words handled by time_range
+            meaningful_terms = [
+                term for term in raw_terms
+                if term.lower() not in STOPWORDS and term.lower() not in TEMPORAL_WORDS and len(term) > 1
+            ]
+
+            if not meaningful_terms:
+                meaningful_terms = [t for t in raw_terms if t.lower() not in STOPWORDS and len(t) > 1]
+            if not meaningful_terms and raw_terms:
+                meaningful_terms = [t for t in raw_terms if len(t) > 1]
+
+            where_clauses: List[str] = []
+            params: List[Any] = []
+
+            if not meaningful_terms:
+                # Return most recent if empty query or non-searchable text
+                from_clause = "activity_records r"
+                where_clauses.append("1=1")
+                order_by = "r.timestamp DESC"
             else:
-                fts_query_str = " OR ".join(f'"{part}"*' for part in fts_query_parts)
-                where_clauses = [
-                    "r.id IN (SELECT id FROM activity_fts WHERE activity_fts MATCH ?)"
-                ]
-                params = [fts_query_str]
+                fts_query_str = " OR ".join(f'"{term}"*' for term in meaningful_terms)
+                from_clause = "activity_records r JOIN activity_fts ON r.id = activity_fts.id"
+                where_clauses.append("activity_fts MATCH ?")
+                params.append(fts_query_str)
+                order_by = "bm25(activity_fts) ASC, r.timestamp DESC"
 
             if time_range:
                 if time_range.start_timestamp is not None:
@@ -149,9 +192,9 @@ class Database:
 
             params.append(limit)
             sql = f"""
-                SELECT r.* FROM activity_records r
+                SELECT r.* FROM {from_clause}
                 WHERE {" AND ".join(where_clauses)}
-                ORDER BY r.timestamp DESC
+                ORDER BY {order_by}
                 LIMIT ?
             """
 
