@@ -122,9 +122,26 @@
   - Web Dashboard Security: Removed `Access-Control-Allow-Origin: *`, added strict `Host` and `Origin` header validation against localhost/127.0.0.1/[::1] to protect against DNS rebinding, and enforced random per-launch session token authentication on all `/api/*` routes and dashboard root.
   - Redactor Expansion: Added patterns for Paystack and Stripe live/test keys, CLI credentials (`mysql -p`, `curl -u`, `sshpass -p`), JWT tokens, AWS secrets, and shell `export` statements. Added 10 unit tests. Documented best-effort heuristic nature.
   - Search Quality: Filtered English stopwords and query intent verbs (`look`, `find`, `see`, `search`, etc.) from FTS queries and enabled SQLite FTS5 `bm25()` ranking to order results by keyword relevance.
-  - Database File Permissions: Enforced user-only permissions (`chmod 600`) on `dijaview.db`. Stated clearly in documentation that storage is unencrypted at rest, relying on OS full-disk encryption.
-  - Prompt Injection Defenses: Enclosed retrieved records in structured `<activity_record>` XML tags, sanitized untrusted snippet content, and updated system prompt with strict anti-injection rules.
-  - Documentation and Submission Post: Set `published: false` in draft frontmatter, updated friend story with authentic feedback from Mohammed Adamu Aliyu ([@Adams-404](https://github.com/Adams-404)), removed Sentry category, accurately differentiated deterministic temporal parsing from Gemma 2 answer synthesis, included real CLI demo output, and added a Limitations section.
-  - Test Suite: Expanded unit test coverage from 30 to 41 unit tests with 100% passing results across all Python versions on CI.
+### [Issue #19] GitHub Release Automation, Version Command & Stability Audit
+- **Date**: 2026-10-03
+- **Issue**: [Icedmist/dijaview#19](https://github.com/Icedmist/dijaview/issues/19)
+- **PR**: [Icedmist/dijaview#20](https://github.com/Icedmist/dijaview/pull/20)
+- **Commit**: `d7576ba` (Squash merge into `main`)
+- **Release**: [v0.1.0](https://github.com/Icedmist/dijaview/releases/tag/v0.1.0)
+- **Scope**:
+  - GitHub Release Automation: Added `.github/workflows/release.yml` triggering on `v*` tags to build wheels and source archives and attach them as downloadable release assets. Restricted `.github/workflows/publish.yml` to manual `workflow_dispatch` until PyPI credentials are ready.
+  - Release v0.1.0: Created and pushed signed tag `v0.1.0`, successfully triggering the automated release workflow that built and uploaded `dijaview-0.1.0-py3-none-any.whl` and `dijaview-0.1.0.tar.gz`.
+  - Version CLI Subcommand: Added `dijaview version` with `--check-update` flag querying GitHub Releases API in `dijaview/cli.py`.
+  - Codebase Flaws & Stability Audit:
+    - Web Server: Gracefully catches port-binding `OSError` (`EADDRINUSE`) with actionable user suggestions without stack traces.
+    - Terminal Adapter: Stabilized deterministic `rec_id` generation for history entries without explicit timestamps; skips file parsing when `mtime <= since_epoch`; guards timestamp parsing.
+    - Notes Adapter: Gracefully detects and skips binary files containing null bytes; skips unmodified notes when `mtime <= since_epoch`.
+    - Browser Adapter: Safely catches invalid/anomalous timestamp conversions for Chromium and Firefox.
+    - Gemma Client: Added explicit guidance when model is missing from local Ollama.
+    - Interactive Chat: Added `/version`, `/clear`, and graceful handling of unknown slash commands.
+    - Watcher Daemon: Added custom adapters parameter and handled `KeyboardInterrupt` cleanly without tracebacks.
+  - Test Suite: Expanded test suite to 44 passing unit tests; isolated `TestSyncWatcher` to deterministic test files; closed `HTTPError` responses to eliminate ResourceWarnings.
+  - Why Open Matters & Branding: Added official SVG logo to `assets/`, `README.md`, and `docs/HACKTOBERFEST_SUBMISSION.md`. Authored complete "Why open matters" section covering local Gemma, zero telemetry, auditable redaction, swappable models, and naming the tradeoffs of the 2B model's weak answers.
+  - Zero em dashes across all code and documentation.
 
 
