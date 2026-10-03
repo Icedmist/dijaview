@@ -101,4 +101,16 @@
   - Registered Google's Gemma 2 2B model (`gemma2:2b`) from local GGUF weights.
   - Verified live natural language activity search with source citation protocol and hallucination defense.
 
+### [Issue #15] Automated Python CI Workflow & PyPI Packaging Setup
+- **Date**: 2026-10-03
+- **Issue**: [Icedmist/dijaview#15](https://github.com/Icedmist/dijaview/issues/15)
+- **PR**: [Icedmist/dijaview#16](https://github.com/Icedmist/dijaview/pull/16)
+- **Commit**: `9cf198b` (Squash merge into `main`)
+- **Scope**:
+  - Added automated GitHub Actions continuous integration matrix testing across Python 3.10, 3.11, and 3.12 (`.github/workflows/ci.yml`).
+  - Added PyPI automated publishing workflow (`.github/workflows/publish.yml`) leveraging PyPI Trusted Publishing (OpenID Connect).
+  - Updated `pyproject.toml` with modern SPDX license identifier (`license = "MIT"`), package discovery configuration to keep wheels lean and test-free, project URLs, and dev dependencies (`build`, `twine`).
+  - Updated `README.md` with CI build badge, PyPI version badge, and `pip install dijaview` instructions.
+  - Verified package builds via `build` and `twine check dist/*` (PASSED on both sdist and wheel).
+
 
