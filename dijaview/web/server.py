@@ -1,5 +1,6 @@
 import json
 import logging
+import secrets
 import threading
 import urllib.parse
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -21,6 +22,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dijaview • Local Activity Search Engine</title>
+  <!-- AUTH_TOKEN_INJECTION -->
   <style>
     :root {
       --bg: #0d1117;
@@ -426,6 +428,17 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <script>
     let activeSource = '';
+    const urlParams = new URLSearchParams(window.location.search);
+    const AUTH_TOKEN = window.__DIJAVIEW_TOKEN__ || urlParams.get('token') || '';
+
+    async function apiFetch(endpoint, options = {}) {
+      const headers = Object.assign({}, options.headers || {}, {
+        'X-Dijaview-Token': AUTH_TOKEN
+      });
+      const separator = endpoint.includes('?') ? '&' : '?';
+      const authedUrl = `${endpoint}${separator}token=${encodeURIComponent(AUTH_TOKEN)}`;
+      return fetch(authedUrl, Object.assign({}, options, { headers }));
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -449,7 +462,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     async function loadStatus() {
       try {
-        const res = await fetch('/api/status');
+        const res = await apiFetch('/api/status');
         const data = await res.json();
         document.getElementById('recordsPill').innerText = `${data.total_records.toLocaleString()} Records • 100% Local`;
         document.getElementById('modelStatusText').innerText = `Model: ${data.gemma_model} [${data.gemma_status}]`;
@@ -464,7 +477,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       if (activeSource) params.append('source', activeSource);
 
       try {
-        const res = await fetch(`/api/timeline?${params.toString()}`);
+        const res = await apiFetch(`/api/timeline?${params.toString()}`);
         const records = await res.json();
 
         if (!records.length) {
@@ -504,7 +517,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       if (activeSource) params.append('source', activeSource);
 
       try {
-        const res = await fetch(`/api/query?${params.toString()}`);
+        const res = await apiFetch(`/api/query?${params.toString()}`);
         const data = await res.json();
 
         answerContent.innerText = data.answer;
@@ -525,7 +538,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     async function triggerSync() {
       showToast('Indexing activity sources...');
       try {
-        const res = await fetch('/api/index', { method: 'POST' });
+        const res = await apiFetch('/api/index', { method: 'POST' });
         const data = await res.json();
         showToast(`Sync complete! ${data.indexed} new entries added.`);
         loadStatus();
@@ -540,7 +553,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       modal.style.display = 'flex';
 
       try {
-        const res = await fetch('/api/permissions');
+        const res = await apiFetch('/api/permissions');
         const perms = await res.json();
 
         const togglesContainer = document.getElementById('permToggles');
@@ -572,7 +585,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     async function toggleSource(source) {
       try {
-        await fetch('/api/permissions/toggle', {
+        await apiFetch('/api/permissions/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ source })
@@ -611,45 +624,108 @@ class DijaviewRequestHandler(BaseHTTPRequestHandler):
     gemma: GemmaClient
     permissions: PermissionsManager
     engine: SearchEngine
+    auth_token: str = ""
+
+    def _validate_host(self) -> bool:
+        """Protects against DNS rebinding and cross-site requests by validating Host and Origin."""
+        host_header = self.headers.get("Host", "").strip()
+        if not host_header:
+            return False
+        hostname = host_header.split(":")[0].strip().lower()
+        if hostname not in {"127.0.0.1", "localhost", "::1"}:
+            return False
+
+        origin_header = self.headers.get("Origin", "").strip()
+        if origin_header:
+            parsed = urllib.parse.urlparse(origin_header)
+            origin_host = (parsed.hostname or "").lower()
+            if origin_host not in {"127.0.0.1", "localhost", "::1"}:
+                return False
+        return True
+
+    def _validate_auth(self, query_params: Dict[str, List[str]]) -> bool:
+        """Validates the per-launch security token via header or query parameter."""
+        token = self.headers.get("X-Dijaview-Token", "").strip()
+        if not token:
+            auth_hdr = self.headers.get("Authorization", "").strip()
+            if auth_hdr.lower().startswith("bearer "):
+                token = auth_hdr[7:].strip()
+        if not token:
+            token = query_params.get("token", [""])[0].strip()
+        return bool(self.auth_token and token == self.auth_token)
 
     def do_GET(self) -> None:
+        if not self._validate_host():
+            self.send_error(403, "Forbidden: Invalid Host or Origin header")
+            return
+
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         query_params = urllib.parse.parse_qs(parsed_url.query)
 
         if path in {"", "/"}:
-            self._send_html(DASHBOARD_HTML)
+            if not self._validate_auth(query_params):
+                unauth_html = (
+                    "<!DOCTYPE html><html><body style='font-family:sans-serif;padding:40px;"
+                    "background:#0d1117;color:#f0f6fc;'><h2>401 Unauthorized</h2>"
+                    "<p>Dijaview dashboard requires an authentication token. "
+                    "Use the authenticated URL printed in your terminal.</p>"
+                    "</body></html>"
+                )
+                self._send_html(unauth_html, status=401)
+                return
+
+            html = DASHBOARD_HTML.replace(
+                "<!-- AUTH_TOKEN_INJECTION -->",
+                f'<script>window.__DIJAVIEW_TOKEN__ = "{self.auth_token}";</script>',
+            )
+            self._send_html(html)
             return
 
-        if path == "/api/status":
-            self._handle_api_status()
-            return
+        if path.startswith("/api/"):
+            if not self._validate_auth(query_params):
+                self._send_json({"error": "Unauthorized: valid authentication token required"}, status=401)
+                return
 
-        if path == "/api/timeline":
-            self._handle_api_timeline(query_params)
-            return
+            if path == "/api/status":
+                self._handle_api_status()
+                return
 
-        if path == "/api/query":
-            self._handle_api_query(query_params)
-            return
+            if path == "/api/timeline":
+                self._handle_api_timeline(query_params)
+                return
 
-        if path == "/api/permissions":
-            self._handle_api_permissions()
-            return
+            if path == "/api/query":
+                self._handle_api_query(query_params)
+                return
+
+            if path == "/api/permissions":
+                self._handle_api_permissions()
+                return
 
         self.send_error(404, "Not Found")
 
     def do_POST(self) -> None:
+        if not self._validate_host():
+            self.send_error(403, "Forbidden: Invalid Host or Origin header")
+            return
+
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
+        query_params = urllib.parse.parse_qs(parsed_url.query)
 
-        if path == "/api/index":
-            self._handle_api_index()
-            return
+        if path.startswith("/api/"):
+            if not self._validate_auth(query_params):
+                self._send_json({"error": "Unauthorized: valid authentication token required"}, status=401)
+                return
 
-        if path == "/api/permissions/toggle":
-            self._handle_api_permissions_toggle()
-            return
+            if path == "/api/index":
+                self._handle_api_index()
+                return
+
+            if path == "/api/permissions/toggle":
+                self._handle_api_permissions_toggle()
+                return
 
         self.send_error(404, "Not Found")
 
@@ -658,7 +734,8 @@ class DijaviewRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         self.wfile.write(body)
 
@@ -667,6 +744,8 @@ class DijaviewRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         self.wfile.write(body)
 
@@ -774,8 +853,9 @@ def create_server(
     db: Optional[Database] = None,
     gemma: Optional[GemmaClient] = None,
     permissions: Optional[PermissionsManager] = None,
+    auth_token: Optional[str] = None,
 ) -> HTTPServer:
-    """Creates a configured HTTPServer instance for Dijaview."""
+    """Creates a configured HTTPServer instance for Dijaview with security controls."""
     cfg = config or Config()
     database = db or Database(db_path=cfg.get("storage.db_path"))
     gemma_client = gemma or GemmaClient(
@@ -784,6 +864,7 @@ def create_server(
     )
     perms = permissions or PermissionsManager(config=cfg)
     engine = SearchEngine(db=database, gemma=gemma_client)
+    token = auth_token or secrets.token_hex(16)
 
     class CustomHandler(DijaviewRequestHandler):
         pass
@@ -793,21 +874,26 @@ def create_server(
     CustomHandler.gemma = gemma_client
     CustomHandler.permissions = perms
     CustomHandler.engine = engine
+    CustomHandler.auth_token = token
 
-    return HTTPServer((host, port), CustomHandler)
+    server = HTTPServer((host, port), CustomHandler)
+    server.auth_token = token  # type: ignore[attr-defined]
+    return server
 
 
 def start_web_server(
     host: str = "127.0.0.1",
     port: int = 8080,
     config: Optional[Config] = None,
+    auth_token: Optional[str] = None,
 ) -> None:
     """Launches the Dijaview local web dashboard server."""
-    server = create_server(host=host, port=port, config=config)
+    server = create_server(host=host, port=port, config=config, auth_token=auth_token)
+    token = getattr(server, "auth_token", "")
     print("=" * 60)
     print("  Dijaview Local Web Dashboard")
-    print(f"  URL: http://{host}:{port}")
-    print("  100% Local • Zero External Sockets")
+    print(f"  URL: http://{host}:{port}/?token={token}")
+    print("  100% Local • Protected by Session Token")
     print("=" * 60)
     print("Press Ctrl+C to stop the dashboard.\n")
     try:

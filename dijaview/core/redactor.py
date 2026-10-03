@@ -7,12 +7,23 @@ REDACTION_PATTERNS = [
     (r"(?i)(bearer\s+)[A-Za-z0-9_\-\.]{12,}", r"\1[REDACTED_TOKEN]"),
     (r"(?i)(authorization:\s*basic\s+)[A-Za-z0-9+/=]{10,}", r"\1[REDACTED_BASIC_AUTH]"),
 
-    # Common provider API keys
-    (r"gh[pousr]_[A-Za-z0-9_]{36,}", "[REDACTED_GITHUB_KEY]"),
-    (r"sk-(?:live|test)?[A-Za-z0-9_\-]{20,}", "[REDACTED_API_KEY]"),
-    (r"(?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}", "[REDACTED_AWS_KEY]"),
+    # JWT tokens (standalone)
+    (r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b", "[REDACTED_JWT]"),
 
-    # Generic token and secret assignment in env / flags
+    # Common provider API keys (Paystack, Stripe, OpenAI, GitHub, AWS)
+    (r"gh[pousr]_[A-Za-z0-9_]{36,}", "[REDACTED_GITHUB_KEY]"),
+    (r"(?i)\b(?:sk|pk|rk)[_-](?:live|test|proj)?[_-]?[A-Za-z0-9_\-]{20,}\b", "[REDACTED_API_KEY]"),
+    (r"(?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}", "[REDACTED_AWS_KEY]"),
+    (r"(?i)(AWS_SECRET_ACCESS_KEY\s*[=:]\s*['\"]?)[^\s'\"]{10,}['\"]?", r"\1[REDACTED_AWS_SECRET]"),
+
+    # CLI credentials: curl -u, mysql -p, sshpass -p
+    (r"(?i)(\bcurl\b[^\n]*?\s+(?:-u|--user)\s+[\"'][^:\s\"']+:)([^\"']+)([\"'])", r"\1[REDACTED_PASSWORD]\3"),
+    (r"(?i)(\bcurl\b[^\n]*?\s+(?:-u|--user)\s+[^:\s\"']+:)([^\s\"']+)", r"\1[REDACTED_PASSWORD]"),
+    (r"(?i)(\bmysql\w*\b[^\n]*?\s+-(?:-password=)?p\s*)(['\"][^'\"]+['\"]|[^\s]+)", r"\1[REDACTED_PASSWORD]"),
+    (r"(?i)(\bsshpass\s+-p\s*)(['\"][^'\"]+['\"]|[^\s]+)", r"\1[REDACTED_PASSWORD]"),
+
+    # Shell export and environment secret assignments
+    (r"(?i)(export\s+[A-Za-z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD|AUTH|PASS|ACCESS)[A-Za-z0-9_]*\s*=\s*['\"]?)(['\"][^'\"]+['\"]|[^\s'\"]+)['\"]?", r"\1[REDACTED_SECRET]"),
     (r"(?i)(api[_-]?key\s*[=:]\s*['\"]?)[A-Za-z0-9_\-\.]{8,}['\"]?", r"\1[REDACTED_KEY]"),
     (r"(?i)(secret[_-]?key\s*[=:]\s*['\"]?)[A-Za-z0-9_\-\.]{8,}['\"]?", r"\1[REDACTED_SECRET]"),
     (r"(?i)(password\s*[=:]\s*['\"]?)[^\s'\"]{4,}['\"]?", r"\1[REDACTED_PASSWORD]"),
